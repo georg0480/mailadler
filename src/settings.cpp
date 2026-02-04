@@ -126,20 +126,14 @@ void ShotcutSettings::migrateLayout()
 void ShotcutSettings::log()
 {
     LOG_INFO() << "language" << language();
-    LOG_INFO() << "deinterlacer" << playerDeinterlacer();
-    LOG_INFO() << "external monitor" << playerExternal();
-    LOG_INFO() << "GPU processing" << playerGPU();
-    LOG_INFO() << "interpolation" << playerInterpolation();
-    LOG_INFO() << "video mode" << playerProfile();
-    LOG_INFO() << "realtime" << playerRealtime();
-    LOG_INFO() << "audio channels" << playerAudioChannels();
-#if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
-    if (::qEnvironmentVariableIsSet("SDL_AUDIODRIVER")) {
-        LOG_INFO() << "audio driver" << ::qgetenv("SDL_AUDIODRIVER");
-    } else {
-        LOG_INFO() << "audio driver" << playerAudioDriver();
-    }
-#endif
+    // Video settings logging disabled
+    // LOG_INFO() << "deinterlacer" << playerDeinterlacer();
+    // LOG_INFO() << "external monitor" << playerExternal();
+    // LOG_INFO() << "GPU processing" << playerGPU();
+    // LOG_INFO() << "interpolation" << playerInterpolation();
+    // LOG_INFO() << "video mode" << playerProfile();
+    // LOG_INFO() << "realtime" << playerRealtime();
+    // LOG_INFO() << "audio channels" << playerAudioChannels();
 }
 
 QString ShotcutSettings::language() const

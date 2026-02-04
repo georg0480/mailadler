@@ -18,9 +18,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "mltcontroller.h"
-#include "mltxmlchecker.h"
-
 #include <QDateTime>
 #include <QMainWindow>
 #include <QMutex>
@@ -36,94 +33,76 @@
 namespace Ui {
 class MainWindow;
 }
-class Player;
-class RecentDock;
-class EncodeDock;
 class JobsDock;
-class PlaylistDock;
 class QUndoStack;
 class QActionGroup;
-class FilterController;
-class ScopeController;
-class FilesDock;
-class FiltersDock;
-class TimelineDock;
 class AutoSaveFile;
 class QNetworkReply;
-class KeyframesDock;
-class MarkersDock;
-class NotesDock;
-class SubtitlesDock;
-class ScreenCapture;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    enum LayoutMode { Custom = 0, Logging, Editing, Effects, Color, Audio, PlayerOnly };
+    enum LayoutMode { Custom = 0, Logging, Editing, Effects, Color, Audio }; // PlayerOnly removed
 
     static MainWindow &singleton();
     ~MainWindow();
-    void open(Mlt::Producer *producer, bool play = true);
+    // void open(Mlt::Producer *producer, bool play = true); // DISABLED: MLT
     bool continueModified();
     bool continueJobsRunning();
     QUndoStack *undoStack() const;
     bool saveXML(const QString &filename, bool withRelativePaths = true);
     static void changeTheme(const QString &theme);
-    PlaylistDock *playlistDock() const { return m_playlistDock; }
-    TimelineDock *timelineDock() const { return m_timelineDock; }
-    FilterController *filterController() const { return m_filterController; }
-    Mlt::Playlist *playlist() const;
-    bool isPlaylistValid() const;
-    Mlt::Producer *multitrack() const;
-    bool isMultitrackValid() const;
+    // PlaylistDock *playlistDock() const { return m_playlistDock; } // DISABLED
+    // TimelineDock *timelineDock() const { return m_timelineDock; } // DISABLED
+    // FilterController *filterController() const { return m_filterController; } // DISABLED
+    // Mlt::Playlist *playlist() const; // DISABLED: MLT
+    // bool isPlaylistValid() const; // DISABLED: MLT
+    // Mlt::Producer *multitrack() const; // DISABLED: MLT
+    // bool isMultitrackValid() const; // DISABLED: MLT
     void doAutosave();
     void setFullScreen(bool isFullScreen);
     QString untitledFileName() const;
-    void setProfile(const QString &profile_name);
+    // void setProfile(const QString &profile_name); // DISABLED: video
     QString fileName() const { return m_currentFile; }
-    bool isSourceClipMyProject(QString resource = MLT.resource(), bool withDialog = true);
-    bool keyframesDockIsVisible() const;
+    // bool isSourceClipMyProject(QString resource = MLT.resource(), bool withDialog = true); // DISABLED: MLT
+    // bool keyframesDockIsVisible() const; // DISABLED: video
 
     void keyPressEvent(QKeyEvent *);
     void keyReleaseEvent(QKeyEvent *);
     void hideSetDataDirectory();
-    QMenu *customProfileMenu() const { return m_customProfileMenu; }
-    QAction *actionAddCustomProfile() const;
-    QAction *actionProfileRemove() const;
-    QActionGroup *profileGroup() const { return m_profileGroup; }
-    void buildVideoModeMenu(QMenu *topMenu,
-                            QMenu *&customMenu,
-                            QActionGroup *group,
-                            QAction *addAction,
-                            QAction *removeAction);
-    void newProject(const QString &filename, bool isProjectFolder = false);
-    void addCustomProfile(const QString &name, QMenu *menu, QAction *action, QActionGroup *group);
-    void removeCustomProfiles(const QStringList &profiles, QDir &dir, QMenu *menu, QAction *action);
-    QUuid timelineClipUuid(int trackIndex, int clipIndex);
-    void replaceInTimeline(const QUuid &uuid, Mlt::Producer &producer);
-    void replaceAllByHash(const QString &hash, Mlt::Producer &producer, bool isProxy = false);
+    // QMenu *customProfileMenu() const { return m_customProfileMenu; } // DISABLED: video
+    // QAction *actionAddCustomProfile() const; // DISABLED: video
+    // QAction *actionProfileRemove() const; // DISABLED: video
+    // QActionGroup *profileGroup() const { return m_profileGroup; } // DISABLED: video
+    // void buildVideoModeMenu(...); // DISABLED: video
+    // void newProject(const QString &filename, bool isProjectFolder = false); // DISABLED: video
+    // void addCustomProfile(...); // DISABLED: video
+    // void removeCustomProfiles(...); // DISABLED: video
+    // QUuid timelineClipUuid(int trackIndex, int clipIndex); // DISABLED: video
+    // void replaceInTimeline(const QUuid &uuid, Mlt::Producer &producer); // DISABLED: MLT
+    // void replaceAllByHash(const QString &hash, Mlt::Producer &producer, bool isProxy = false); // DISABLED: MLT
     bool isClipboardNewer() const { return m_clipboardUpdatedAt > m_sourceUpdatedAt; }
-    int mltIndexForTrack(int trackIndex) const;
-    int bottomVideoTrackIndex() const;
-    void cropSource(const QRectF &rect);
-    void getMarkerRange(int position, int *start, int *end);
-    void getSelectionRange(int *start, int *end);
-    Mlt::Playlist *binPlaylist();
-    void showInFiles(const QString &filePath);
-    void turnOffHardwareDecoder();
+    // int mltIndexForTrack(int trackIndex) const; // DISABLED: video
+    // int bottomVideoTrackIndex() const; // DISABLED: video
+    // void cropSource(const QRectF &rect); // DISABLED: video
+    // void getMarkerRange(int position, int *start, int *end); // DISABLED: video
+    // void getSelectionRange(int *start, int *end); // DISABLED: video
+    // Mlt::Playlist *binPlaylist(); // DISABLED: MLT
+    // void showInFiles(const QString &filePath); // DISABLED: video
+    // void turnOffHardwareDecoder(); // DISABLED: video
 
 signals:
-    void audioChannelsChanged();
-    void processingModeChanged();
-    void producerOpened(bool withReopen = true);
-    void profileChanged();
-    void openFailed(QString);
+    // void audioChannelsChanged(); // DISABLED: video
+    // void processingModeChanged(); // DISABLED: video
+    // void producerOpened(bool withReopen = true); // DISABLED: video
+    // void profileChanged(); // DISABLED: video
+    // void openFailed(QString); // DISABLED: video
     void aboutToShutDown();
-    void renameRequested();
-    void serviceInChanged(int delta, Mlt::Service *);
-    void serviceOutChanged(int delta, Mlt::Service *);
+    // void renameRequested(); // DISABLED: video
+    // void serviceInChanged(int delta, Mlt::Service *); // DISABLED: MLT
+    // void serviceOutChanged(int delta, Mlt::Service *); // DISABLED: MLT
 
 protected:
     MainWindow();
@@ -139,86 +118,86 @@ private:
     void registerDebugCallback();
     void connectUISignals();
     void setupAndConnectUndoStack();
-    void setupAndConnectPlayerWidget();
+    // void setupAndConnectPlayerWidget(); // DISABLED
     void setupLayoutSwitcher();
-    void centerLayoutInRemainingToolbarSpace();
-    void setupAndConnectDocks();
-    void setupMenuFile();
-    void setupMenuView();
-    void connectVideoWidgetSignals();
+    // void centerLayoutInRemainingToolbarSpace(); // DISABLED
+    // void setupAndConnectDocks(); // DISABLED: mostly video
+    // void setupMenuFile(); // DISABLED
+    // void setupMenuView(); // DISABLED
+    // void connectVideoWidgetSignals(); // DISABLED
     void setupSettingsMenu();
     void setupOpenOtherMenu();
     void setupActions();
-    QAction *addProfile(QActionGroup *actionGroup, const QString &desc, const QString &name);
-    QAction *addLayout(QActionGroup *actionGroup, const QString &name);
-    void readPlayerSettings();
+    // QAction *addProfile(...); // DISABLED: video
+    // QAction *addLayout(...); // DISABLED: video
+    // void readPlayerSettings(); // DISABLED: video
     void readWindowSettings();
     void writeSettings();
-    void configureVideoWidget();
+    // void configureVideoWidget(); // DISABLED: video
     void setCurrentFile(const QString &filename);
     void updateWindowTitle();
-    void changeAudioChannels(bool checked, int channels);
-    void changeDeinterlacer(bool checked, const char *method);
-    void changeInterpolation(bool checked, const char *method);
+    // void changeAudioChannels(bool checked, int channels); // DISABLED: video
+    // void changeDeinterlacer(bool checked, const char *method); // DISABLED: video
+    // void changeInterpolation(bool checked, const char *method); // DISABLED: video
     bool checkAutoSave(QString &url);
-    bool saveConvertedXmlFile(MltXmlChecker &checker, QString &fileName);
-    bool saveRepairedXmlFile(MltXmlChecker &checker, QString &fileName);
-    void setAudioChannels(int channels);
-    void setProcessingMode(ShotcutSettings::ProcessingMode mode);
-    void showSaveError();
-    void setPreviewScale(int scale);
-    void setVideoModeMenu();
-    void resetVideoModeMenu();
-    void resetDockCorners();
-    void showIncompatibleProjectMessage(const QString &shotcutVersion);
+    // bool saveConvertedXmlFile(MltXmlChecker &checker, QString &fileName); // DISABLED: MLT
+    // bool saveRepairedXmlFile(MltXmlChecker &checker, QString &fileName); // DISABLED: MLT
+    // void setAudioChannels(int channels); // DISABLED: video
+    // void setProcessingMode(ShotcutSettings::ProcessingMode mode); // DISABLED: video
+    // void showSaveError(); // DISABLED
+    // void setPreviewScale(int scale); // DISABLED: video
+    // void setVideoModeMenu(); // DISABLED: video
+    // void resetVideoModeMenu(); // DISABLED: video
+    // void resetDockCorners(); // DISABLED: video
+    // void showIncompatibleProjectMessage(const QString &shotcutVersion); // DISABLED
     void restartAfterChangeTheme();
     void backup();
     void backupPeriodically();
-    bool confirmProfileChange();
-    bool confirmRestartExternalMonitor();
-    void resetFilterMenuIfNeeded();
+    // bool confirmProfileChange(); // DISABLED: video
+    // bool confirmRestartExternalMonitor(); // DISABLED: video
+    // void resetFilterMenuIfNeeded(); // DISABLED: video
 
     Ui::MainWindow *ui;
-    Player *m_player;
-    QDockWidget *m_propertiesDock;
-    RecentDock *m_recentDock;
-    EncodeDock *m_encodeDock;
+    // Player *m_player; // DISABLED
+    // QDockWidget *m_propertiesDock; // DISABLED
+    // RecentDock *m_recentDock; // DISABLED
+    // EncodeDock *m_encodeDock; // DISABLED
     JobsDock *m_jobsDock;
-    PlaylistDock *m_playlistDock;
-    TimelineDock *m_timelineDock;
+    // PlaylistDock *m_playlistDock; // DISABLED
+    // TimelineDock *m_timelineDock; // DISABLED
     QString m_currentFile;
-    bool m_isKKeyPressed;
+    // bool m_isKKeyPressed; // DISABLED
     QUndoStack *m_undoStack;
-    QDockWidget *m_historyDock;
-    QActionGroup *m_profileGroup;
-    QActionGroup *m_externalGroup;
-    QActionGroup *m_decklinkGammaGroup{nullptr};
-    QActionGroup *m_keyerGroup;
-    QActionGroup *m_layoutGroup;
-    QActionGroup *m_previewScaleGroup;
-    FiltersDock *m_filtersDock;
-    FilterController *m_filterController;
-    ScopeController *m_scopeController;
-    QMenu *m_customProfileMenu;
-    QMenu *m_decklinkGammaMenu{nullptr};
-    QMenu *m_keyerMenu;
-    QStringList m_multipleFiles;
-    bool m_multipleFilesLoading;
-    bool m_isPlaylistLoaded;
+    // QDockWidget *m_historyDock; // DISABLED
+    // QActionGroup *m_profileGroup; // DISABLED: video
+    // QActionGroup *m_externalGroup; // DISABLED: video
+    // QActionGroup *m_decklinkGammaGroup{nullptr}; // DISABLED: video
+    // QActionGroup *m_keyerGroup; // DISABLED: video
+    // QActionGroup *m_layoutGroup; // DISABLED: video
+    // QActionGroup *m_previewScaleGroup; // DISABLED: video
+    // FiltersDock *m_filtersDock; // DISABLED: video
+    // FilterController *m_filterController; // DISABLED: video
+    // ScopeController *m_scopeController; // DISABLED: video
+    // QMenu *m_customProfileMenu; // DISABLED: video
+    // QMenu *m_decklinkGammaMenu{nullptr}; // DISABLED: video
+    // QMenu *m_keyerMenu; // DISABLED: video
+    // QStringList m_multipleFiles; // DISABLED: video
+    // bool m_multipleFilesLoading; // DISABLED: video
+    // bool m_isPlaylistLoaded; // DISABLED: video
     QActionGroup *m_languagesGroup;
     QSharedPointer<AutoSaveFile> m_autosaveFile;
     QMutex m_autosaveMutex;
     QTimer m_autosaveTimer;
     int m_exitCode;
-    QScopedPointer<QAction> m_statusBarAction;
+    // QScopedPointer<QAction> m_statusBarAction; // DISABLED
     QNetworkAccessManager m_network;
-    QString m_upgradeUrl;
-    KeyframesDock *m_keyframesDock;
+    // QString m_upgradeUrl; // DISABLED
+    // KeyframesDock *m_keyframesDock; // DISABLED: video
     QDateTime m_clipboardUpdatedAt;
     QDateTime m_sourceUpdatedAt;
-    MarkersDock *m_markersDock;
-    NotesDock *m_notesDock;
-    SubtitlesDock *m_subtitlesDock;
+    // MarkersDock *m_markersDock; // DISABLED: video
+    // NotesDock *m_notesDock; // DISABLED: video
+    // SubtitlesDock *m_subtitlesDock; // DISABLED: video
     std::unique_ptr<QWidget> m_producerWidget;
     FilesDock *m_filesDock;
     ScreenCapture *m_screenCapture;

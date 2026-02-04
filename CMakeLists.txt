@@ -38,29 +38,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt6 6.4 REQUIRED
   COMPONENTS
-  Charts
-  Multimedia
   Network
-  OpenGL
-  OpenGLWidgets
-  QuickControls2
-  QuickWidgets
   Sql
-  WebSockets
   Widgets
   Xml
 )
 if(UNIX AND NOT APPLE)
   find_package(Qt6 6.4 REQUIRED COMPONENTS DBus)
-  # X11 for WindowPicker (Linux/X11)
-  find_package(X11 REQUIRED)
-endif()
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(mlt++ REQUIRED IMPORTED_TARGET mlt++-7>=7.36.0)
-pkg_check_modules(FFTW IMPORTED_TARGET fftw3)
-if(NOT FFTW_FOUND)
-  pkg_check_modules(FFTW REQUIRED IMPORTED_TARGET fftw)
 endif()
 
 add_subdirectory(CuteLogger)

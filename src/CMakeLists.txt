@@ -1,151 +1,30 @@
 find_package(Qt6 REQUIRED COMPONENTS Core)
 
 add_executable(shotcut WIN32 MACOSX_BUNDLE
-  abstractproducerwidget.cpp abstractproducerwidget.h
   actions.cpp actions.h
   autosavefile.cpp autosavefile.h
-  commands/filtercommands.cpp commands/filtercommands.h
-  commands/markercommands.cpp commands/markercommands.h
-  commands/playlistcommands.cpp commands/playlistcommands.h
-  commands/subtitlecommands.cpp commands/subtitlecommands.h
-  commands/timelinecommands.cpp commands/timelinecommands.h
   commands/undohelper.cpp commands/undohelper.h
-  controllers/filtercontroller.cpp controllers/filtercontroller.h
-  controllers/scopecontroller.cpp controllers/scopecontroller.h
   database.cpp database.h
-  dialogs/actionsdialog.cpp dialogs/actionsdialog.h
-  dialogs/addencodepresetdialog.cpp dialogs/addencodepresetdialog.h
-  dialogs/addencodepresetdialog.ui
-  dialogs/alignaudiodialog.cpp dialogs/alignaudiodialog.h
-  dialogs/alignmentarray.cpp dialogs/alignmentarray.h
-  dialogs/bitratedialog.h dialogs/bitratedialog.cpp
-  dialogs/customprofiledialog.cpp dialogs/customprofiledialog.h
-  dialogs/customprofiledialog.ui
-  dialogs/durationdialog.cpp dialogs/durationdialog.h
-  dialogs/durationdialog.ui
-  dialogs/editmarkerdialog.cpp dialogs/editmarkerdialog.h
-  dialogs/filedatedialog.cpp dialogs/filedatedialog.h
   dialogs/filedownloaddialog.cpp dialogs/filedownloaddialog.h
   dialogs/listselectiondialog.cpp dialogs/listselectiondialog.h
   dialogs/listselectiondialog.ui
   dialogs/longuitask.cpp dialogs/longuitask.h
-  dialogs/multifileexportdialog.cpp dialogs/multifileexportdialog.h
   dialogs/resourcedialog.cpp dialogs/resourcedialog.h
-  dialogs/saveimagedialog.cpp dialogs/saveimagedialog.h
-  dialogs/slideshowgeneratordialog.cpp dialogs/slideshowgeneratordialog.h
-  dialogs/speechdialog.h dialogs/speechdialog.cpp
-  dialogs/subtitletrackdialog.cpp dialogs/subtitletrackdialog.h
-  dialogs/systemsyncdialog.cpp dialogs/systemsyncdialog.h
-  dialogs/systemsyncdialog.ui
   dialogs/textviewerdialog.cpp dialogs/textviewerdialog.h
   dialogs/textviewerdialog.ui
-  dialogs/transcodedialog.cpp dialogs/transcodedialog.h
-  dialogs/transcodedialog.ui
-  dialogs/transcribeaudiodialog.cpp dialogs/transcribeaudiodialog.h
-  dialogs/unlinkedfilesdialog.cpp dialogs/unlinkedfilesdialog.h
-  dialogs/unlinkedfilesdialog.ui
-  docks/encodedock.cpp docks/encodedock.h
-  docks/encodedock.ui
-  docks/filesdock.cpp docks/filesdock.h
-  docks/filesdock.ui
-  docks/filtersdock.cpp docks/filtersdock.h
   docks/jobsdock.cpp docks/jobsdock.h
   docks/jobsdock.ui
-  docks/keyframesdock.cpp docks/keyframesdock.h
-  docks/markersdock.cpp docks/markersdock.h
-  docks/notesdock.cpp docks/notesdock.h
-  docks/playlistdock.cpp docks/playlistdock.h
-  docks/playlistdock.ui
-  docks/recentdock.cpp docks/recentdock.h
-  docks/recentdock.ui
-  docks/scopedock.cpp docks/scopedock.h
-  docks/subtitlesdock.cpp docks/subtitlesdock.h
-  docks/timelinedock.cpp docks/timelinedock.h
-  FlatpakWrapperGenerator.cpp FlatpakWrapperGenerator.h
-  htmlgenerator.h htmlgenerator.cpp
   jobqueue.cpp jobqueue.h
   jobs/abstractjob.cpp jobs/abstractjob.h
-  jobs/bitrateviewerjob.h jobs/bitrateviewerjob.cpp
-  jobs/dockerpulljob.h jobs/dockerpulljob.cpp
-  jobs/encodejob.cpp jobs/encodejob.h
-  jobs/ffmpegjob.cpp jobs/ffmpegjob.h
-  jobs/ffprobejob.cpp jobs/ffprobejob.h
-  jobs/gopro2gpxjob.cpp jobs/gopro2gpxjob.h
-  jobs/htmlgeneratorjob.cpp jobs/htmlgeneratorjob.h
-  jobs/kokorodokijob.cpp jobs/kokorodokijob.h
-  jobs/meltjob.cpp jobs/meltjob.h
   jobs/postjobaction.cpp jobs/postjobaction.h
-  jobs/qimagejob.cpp jobs/qimagejob.h
-  jobs/screencapturejob.cpp jobs/screencapturejob.h
-  jobs/videoqualityjob.cpp jobs/videoqualityjob.h
-  jobs/whisperjob.cpp jobs/whisperjob.h
   main.cpp
   mainwindow.cpp mainwindow.h
   mainwindow.ui
-  mltcontroller.cpp mltcontroller.h
-  mltxmlchecker.cpp mltxmlchecker.h
-  models/actionsmodel.cpp models/actionsmodel.h
-  models/alignclipsmodel.cpp models/alignclipsmodel.h
-  models/attachedfiltersmodel.cpp models/attachedfiltersmodel.h
-  models/audiolevelstask.cpp models/audiolevelstask.h
-  models/extensionmodel.cpp models/extensionmodel.h
-  models/keyframesmodel.cpp models/keyframesmodel.h
-  models/markersmodel.cpp models/markersmodel.h
-  models/metadatamodel.cpp models/metadatamodel.h
-  models/motiontrackermodel.h models/motiontrackermodel.cpp
-  models/multitrackmodel.cpp models/multitrackmodel.h
-  models/playlistmodel.cpp models/playlistmodel.h
-  models/resourcemodel.cpp models/resourcemodel.h
-  models/subtitles.cpp models/subtitles.h
-  models/subtitlesmodel.cpp models/subtitlesmodel.h
-  models/subtitlesselectionmodel.cpp models/subtitlesselectionmodel.h
   openotherdialog.cpp openotherdialog.h
   openotherdialog.ui
-  player.cpp player.h
-  proxymanager.cpp proxymanager.h
-  qmltypes/colordialog.h qmltypes/colordialog.cpp
-  qmltypes/colorpickeritem.cpp qmltypes/colorpickeritem.h
-  qmltypes/colorwheelitem.cpp qmltypes/colorwheelitem.h
-  qmltypes/filedialog.h qmltypes/filedialog.cpp
-  qmltypes/fontdialog.h qmltypes/fontdialog.cpp
-  qmltypes/messagedialog.h qmltypes/messagedialog.cpp
-  qmltypes/qmlapplication.cpp qmltypes/qmlapplication.h
-  qmltypes/qmleditmenu.cpp qmltypes/qmleditmenu.h
-  qmltypes/qmlextension.cpp qmltypes/qmlextension.h
-  qmltypes/qmlfile.cpp qmltypes/qmlfile.h
-  qmltypes/qmlfilter.cpp qmltypes/qmlfilter.h
-  qmltypes/qmlmarkermenu.cpp qmltypes/qmlmarkermenu.h
-  qmltypes/qmlmetadata.cpp qmltypes/qmlmetadata.h
-  qmltypes/qmlproducer.cpp qmltypes/qmlproducer.h
-  qmltypes/qmlprofile.cpp qmltypes/qmlprofile.h
-  qmltypes/qmlrichtext.cpp qmltypes/qmlrichtext.h
-  qmltypes/qmlrichtextmenu.cpp qmltypes/qmlrichtextmenu.h
-  qmltypes/qmlutilities.cpp qmltypes/qmlutilities.h
-  qmltypes/qmlview.cpp qmltypes/qmlview.h
-  qmltypes/thumbnailprovider.cpp qmltypes/thumbnailprovider.h
-  qmltypes/timelineitems.cpp qmltypes/timelineitems.h
   resources.qrc
-  scrubbar.cpp scrubbar.h
   settings.cpp settings.h
-  sharedframe.cpp sharedframe.h
-  shotcut_mlt_properties.h
-  transcoder.cpp transcoder.h
-  screencapture/rectangleselector.cpp
-  screencapture/rectangleselector.h
-  screencapture/screencapture.cpp
-  screencapture/screencapture.h
-  screencapture/toolbarwidget.cpp
-  screencapture/toolbarwidget.h
-  screencapture/windowpicker.cpp
-  screencapture/windowpicker.h
-  spatialmedia/box.cpp spatialmedia/box.h
-  spatialmedia/container.cpp spatialmedia/container.h
-  spatialmedia/mpeg4_container.cpp spatialmedia/mpeg4_container.h
-  spatialmedia/sa3d.cpp spatialmedia/sa3d.h
-  spatialmedia/spatialmedia.cpp spatialmedia/spatialmedia.h
-  transportcontrol.h
   util.cpp util.h
-  videowidget.cpp videowidget.h
   widgets/alsawidget.cpp widgets/alsawidget.h
   widgets/alsawidget.ui
   widgets/audiometerwidget.cpp widgets/audiometerwidget.h
@@ -269,26 +148,18 @@ add_custom_target(OTHER_FILES
 target_link_libraries(shotcut
   PRIVATE
   CuteLogger
-  PkgConfig::mlt++
-  PkgConfig::FFTW
-  Qt6::Charts
-  Qt6::Multimedia
   Qt6::Network
-  Qt6::OpenGL
-  Qt6::OpenGLWidgets
-  Qt6::QuickControls2
-  Qt6::QuickWidgets
   Qt6::Sql
-  Qt6::WebSockets
   Qt6::Widgets
   Qt6::Xml
 )
 if(UNIX AND NOT APPLE)
-  target_link_libraries(shotcut PRIVATE Qt6::DBus X11::X11)
+  target_link_libraries(shotcut PRIVATE Qt6::DBus)
 endif()
 
-file(GLOB_RECURSE QML_SRC "qml/*")
-target_sources(shotcut PRIVATE ${QML_SRC})
+# QML files disabled during mail client migration
+# file(GLOB_RECURSE QML_SRC "qml/*")
+# target_sources(shotcut PRIVATE ${QML_SRC})
 
 target_include_directories(shotcut PRIVATE ${CMAKE_SOURCE_DIR}/CuteLogger/include)
 target_compile_definitions(shotcut PRIVATE SHOTCUT_VERSION="${SHOTCUT_VERSION}")

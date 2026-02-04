@@ -21,76 +21,19 @@
 #include "Logger.h"
 #include "actions.h"
 #include "autosavefile.h"
-#include "commands/playlistcommands.h"
-#include "controllers/filtercontroller.h"
-#include "controllers/scopecontroller.h"
 #include "database.h"
-#include "defaultlayouts.h"
-#include "dialogs/actionsdialog.h"
-#include "dialogs/customprofiledialog.h"
+#include "dialogs/filedownloaddialog.h"
 #include "dialogs/listselectiondialog.h"
 #include "dialogs/longuitask.h"
 #include "dialogs/resourcedialog.h"
-#include "dialogs/saveimagedialog.h"
-#include "dialogs/systemsyncdialog.h"
 #include "dialogs/textviewerdialog.h"
-#include "dialogs/unlinkedfilesdialog.h"
-#include "docks/encodedock.h"
-#include "docks/filesdock.h"
-#include "docks/filtersdock.h"
-#include "docks/findanalysisfilterparser.h"
 #include "docks/jobsdock.h"
-#include "docks/keyframesdock.h"
-#include "docks/markersdock.h"
-#include "docks/notesdock.h"
-#include "docks/playlistdock.h"
-#include "docks/recentdock.h"
-#include "docks/subtitlesdock.h"
-#include "docks/timelinedock.h"
 #include "jobqueue.h"
-#include "jobs/screencapturejob.h"
-#include "models/audiolevelstask.h"
-#include "models/keyframesmodel.h"
-#include "models/motiontrackermodel.h"
 #include "openotherdialog.h"
-#include "player.h"
-#include "proxymanager.h"
-#include "qmltypes/qmlapplication.h"
-#include "qmltypes/qmlprofile.h"
-#include "qmltypes/qmlutilities.h"
-#include "screencapture/screencapture.h"
 #include "settings.h"
-#include "shotcut_mlt_properties.h"
 #include "util.h"
-#include "videowidget.h"
-#include "widgets/alsawidget.h"
-#include "widgets/avformatproducerwidget.h"
-#include "widgets/avfoundationproducerwidget.h"
-#include "widgets/blipproducerwidget.h"
-#include "widgets/colorbarswidget.h"
-#include "widgets/colorproducerwidget.h"
-#include "widgets/countproducerwidget.h"
-#include "widgets/decklinkproducerwidget.h"
-#include "widgets/directshowvideowidget.h"
-#include "widgets/glaxnimateproducerwidget.h"
-#include "widgets/htmlgeneratorwidget.h"
-#include "widgets/imageproducerwidget.h"
-#include "widgets/isingwidget.h"
-#include "widgets/lissajouswidget.h"
-#include "widgets/lumamixtransition.h"
-#include "widgets/mltclipproducerwidget.h"
-#include "widgets/newprojectfolder.h"
-#include "widgets/noisewidget.h"
-#include "widgets/plasmawidget.h"
-#include "widgets/pulseaudiowidget.h"
-#include "widgets/textproducerwidget.h"
-#include "widgets/timelinepropertieswidget.h"
-#include "widgets/toneproducerwidget.h"
-#include "widgets/trackpropertieswidget.h"
-#include "widgets/video4linuxwidget.h"
-#if defined(Q_OS_WIN) && (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-#include "windowstools.h"
-#endif
+// Widget includes disabled - video-specific modules
+// #include "widgets/..."
 
 #include <QApplication>
 #include <QClipboard>
@@ -201,27 +144,27 @@ MainWindow::MainWindow()
     setupAndConnectUndoStack();
 
     // Add the player widget.
-    setupAndConnectPlayerWidget();
+    // setupAndConnectPlayerWidget(); // DISABLED: video player removed
 
     setupSettingsMenu();
     setupOpenOtherMenu();
-    readPlayerSettings();
-    configureVideoWidget();
+    // readPlayerSettings(); // DISABLED: video-specific
+    // configureVideoWidget(); // DISABLED: video-specific
 
     // Restore custom colors from settings
     Settings.restoreCustomColors();
 
-    centerLayoutInRemainingToolbarSpace();
+    // centerLayoutInRemainingToolbarSpace(); // DISABLED: video-specific
 
 #ifndef SHOTCUT_NOUPGRADE
     if (Settings.noUpgrade() || qApp->property("noupgrade").toBool())
 #endif
         delete ui->actionUpgrade;
 
-    setupAndConnectDocks();
-    setupMenuFile();
-    setupMenuView();
-    connectVideoWidgetSignals();
+    // setupAndConnectDocks(); // DISABLED: mostly video
+    // setupMenuFile(); // DISABLED
+    // setupMenuView(); // DISABLED
+    // connectVideoWidgetSignals(); // DISABLED
     readWindowSettings();
     setupActions();
     setupLayoutSwitcher();
@@ -1016,24 +959,28 @@ void MainWindow::onFocusObjectChanged(QObject *) const
 
 void MainWindow::onTimelineClipSelected()
 {
+    // DISABLED: MLT timeline/player
     // Switch to Project player.
-    if (m_player->tabIndex() != Player::ProjectTabIndex) {
-        m_timelineDock->saveAndClearSelection();
-        m_player->onTabBarClicked(Player::ProjectTabIndex);
-    }
+    // if (m_player->tabIndex() != Player::ProjectTabIndex) {
+    //     m_timelineDock->saveAndClearSelection();
+    //     m_player->onTabBarClicked(Player::ProjectTabIndex);
+    // }
 }
 
+/* DISABLED: MLT playlist timeline function
 void MainWindow::onAddAllToTimeline(Mlt::Playlist *playlist, bool skipProxy, bool emptyTrack)
 {
+    // DISABLED: MLT timeline/player
     // We stop the player because of a bug on Windows that results in some
     // strange memory leak when using Add All To Timeline, more noticeable
     // with (high res?) still image files.
-    if (MLT.isSeekable())
-        m_player->pause();
-    else
-        m_player->stop();
-    m_timelineDock->appendFromPlaylist(playlist, skipProxy, emptyTrack);
+    // if (MLT.isSeekable())
+    //     m_player->pause();
+    // else
+    //     m_player->stop();
+    // m_timelineDock->appendFromPlaylist(playlist, skipProxy, emptyTrack);
 }
+*/
 
 MainWindow &MainWindow::singleton()
 {
@@ -1044,20 +991,20 @@ MainWindow &MainWindow::singleton()
 MainWindow::~MainWindow()
 {
     delete ui;
-    Mlt::Controller::destroy();
+    // Mlt::Controller::destroy(); // DISABLED: MLT
 }
 
 void MainWindow::setupSettingsMenu()
 {
     LOG_DEBUG() << "begin";
 
-    Mlt::Filter filter(MLT.profile(), "color_transform");
-    if (!filter.is_valid()) {
-#if LIBMLT_VERSION_INT < ((7 << 16) + (34 << 8))
-        ui->actionNative10bitCpu->setVisible(false);
-#endif
-        ui->actionLinear10bitCpu->setVisible(false);
-    }
+    // Mlt::Filter filter(MLT.profile(), "color_transform"); // DISABLED: MLT
+    // if (!filter.is_valid()) { // DISABLED: MLT
+    // #if LIBMLT_VERSION_INT < ((7 << 16) + (34 << 8))
+    //     ui->actionNative10bitCpu->setVisible(false);
+    // #endif
+    //     ui->actionLinear10bitCpu->setVisible(false);
+    // } // DISABLED: MLT
     QActionGroup *group = new QActionGroup(this);
     ui->actionNative8bitCpu->setData(ShotcutSettings::Native8Cpu);
     if (ui->actionNative10bitCpu->isVisible())
@@ -1718,6 +1665,7 @@ void MainWindow::open(Mlt::Producer *producer, bool play)
     activateWindow();
 }
 
+/* DISABLED: MLT XML checker
 bool MainWindow::isCompatibleWithGpuMode(MltXmlChecker &checker, QString &fileName)
 {
     bool result = true;
@@ -1760,8 +1708,10 @@ bool MainWindow::isCompatibleWithGpuMode(MltXmlChecker &checker, QString &fileNa
     }
     return result;
 }
+*/
 
-bool MainWindow::saveConvertedXmlFile(MltXmlChecker &checker, QString &fileName)
+/*
+bool MainWindow::saveConvertedXmlFile_disabled(MltXmlChecker &checker, QString &fileName)
 {
     QFileInfo fi(fileName);
     const auto convertedStr = Settings.playerGPU() ? tr("Converted for GPU")
@@ -1809,8 +1759,10 @@ bool MainWindow::saveConvertedXmlFile(MltXmlChecker &checker, QString &fileName)
     }
     return false;
 }
+*/
 
-bool MainWindow::saveRepairedXmlFile(MltXmlChecker &checker, QString &fileName)
+/*
+bool MainWindow::saveRepairedXmlFile_disabled(MltXmlChecker &checker, QString &fileName)
 {
     QFileInfo fi(fileName);
     auto filename = QStringLiteral("%1/%2 - %3.%4")
@@ -1856,8 +1808,13 @@ bool MainWindow::saveRepairedXmlFile(MltXmlChecker &checker, QString &fileName)
     }
     return false;
 }
+*/
 
-bool MainWindow::isXmlRepaired(MltXmlChecker &checker, QString &fileName)
+bool MainWindow::isXmlRepaired(MltXmlChecker &checker, QString &fileName) 
+{ return true; } // DISABLED: MLT XML checker
+
+/*
+bool MainWindow::isXmlRepaired_disabled(MltXmlChecker &checker, QString &fileName)
 {
     bool result = true;
     if (checker.isCorrected()) {
@@ -1889,6 +1846,7 @@ bool MainWindow::isXmlRepaired(MltXmlChecker &checker, QString &fileName)
     }
     return result;
 }
+*/
 
 bool MainWindow::checkAutoSave(QString &url)
 {
@@ -1957,11 +1915,13 @@ QString MainWindow::untitledFileName() const
 
 void MainWindow::setProfile(const QString &profile_name)
 {
+    // DISABLED: MLT video profile
     LOG_DEBUG() << profile_name;
-    MLT.setProfile(profile_name);
-    emit profileChanged();
+    // MLT.setProfile(profile_name);
+    // emit profileChanged();
 }
 
+/* DISABLED: MLT player references
 bool MainWindow::isSourceClipMyProject(QString resource, bool withDialog)
 {
     if (m_player->tabIndex() == Player::ProjectTabIndex && MLT.savedProducer()
@@ -1988,7 +1948,9 @@ bool MainWindow::keyframesDockIsVisible() const
 {
     return m_keyframesDock && m_keyframesDock->isVisible();
 }
+*/
 
+/* DISABLED: MLT audio/video settings
 void MainWindow::setAudioChannels(int channels)
 {
     LOG_DEBUG() << channels;
@@ -2030,6 +1992,7 @@ void MainWindow::setProcessingMode(ShotcutSettings::ProcessingMode mode)
     MLT.setProcessingMode(mode);
     emit processingModeChanged();
 }
+*/
 
 void MainWindow::showSaveError()
 {
@@ -2195,7 +2158,8 @@ void MainWindow::onAutosaveTimeout()
     }
 }
 
-bool MainWindow::open(QString url, const Mlt::Properties *properties, bool play, bool skipConvert)
+/* DISABLED: MLT open function - too large and video-specific
+bool MainWindow::open_disabled(QString url, const Mlt::Properties *properties, bool play, bool skipConvert)
 {
     // returns false when MLT is unable to open the file, possibly because it has percent sign in the path
     LOG_DEBUG() << url;
@@ -2216,37 +2180,37 @@ bool MainWindow::open(QString url, const Mlt::Properties *properties, bool play,
         }
         switch (checker.check(url)) {
         case QXmlStreamReader::NoError:
-            converted = isCompatibleWithGpuMode(checker, url);
+            converted = true; // isCompatibleWithGpuMode(checker, url); // DISABLED
             if (!converted) {
                 showStatusMessage(tr("Failed to open ").append(url));
                 return true;
             }
             break;
         case QXmlStreamReader::CustomError:
-            showIncompatibleProjectMessage(checker.shotcutVersion());
+            // showIncompatibleProjectMessage(checker.shotcutVersion()); // DISABLED: MLT
             return true;
         default:
             showStatusMessage(tr("Failed to open ").append(url));
             return true;
         }
         // only check for a modified project when loading a project, not a simple producer
-        if (!continueModified())
-            return true;
-        QCoreApplication::processEvents();
-        // close existing project
-        if (playlist()) {
-            m_playlistDock->model()->close();
-        }
-        if (multitrack()) {
-            m_timelineDock->model()->close();
-        }
-        MLT.purgeMemoryPool();
-        if (!isXmlRepaired(checker, url))
-            return true;
+         if (!continueModified())
+             return true;
+         QCoreApplication::processEvents();
+         // close existing project
+         // if (playlist()) { // DISABLED: MLT
+         //     m_playlistDock->model()->close();
+         // }
+         // if (multitrack()) { // DISABLED: MLT
+         //     m_timelineDock->model()->close();
+         // }
+        // MLT.purgeMemoryPool(); // DISABLED
+        // if (!isXmlRepaired(checker, url)) // DISABLED
+        //     return true;
         modified = checkAutoSave(url);
         if (modified) {
             if (checker.check(url) == QXmlStreamReader::NoError) {
-                converted = isCompatibleWithGpuMode(checker, url);
+                converted = true; // isCompatibleWithGpuMode(checker, url); // DISABLED
                 if (!converted)
                     return true;
             } else {
@@ -2334,21 +2298,26 @@ void MainWindow::openMultiple(const QStringList &paths)
         open(paths.first());
     }
 }
+*/
+
+bool MainWindow::open(QString url, const Mlt::Properties *properties, bool play, bool skipConvert)
+{ return false; } // DISABLED: MLT
 
 // This one is invoked from above (command line) or drag-n-drop.
 void MainWindow::openMultiple(const QList<QUrl> &urls)
 {
     if (urls.size() > 1) {
         m_multipleFiles = Util::sortedFileList(Util::expandDirectories(urls));
-        open(m_multipleFiles.first(), nullptr, true, true);
+        // open(m_multipleFiles.first(), nullptr, true, true); // DISABLED: MLT
     } else if (urls.size() > 0) {
         QUrl url = urls.first();
-        if (!open(Util::removeFileScheme(url)))
-            open(Util::removeFileScheme(url, false));
+        // if (!open(Util::removeFileScheme(url))) // DISABLED: MLT
+        //     open(Util::removeFileScheme(url, false));
     }
 }
 
-// This is one is invoked from the action.
+// DISABLED: openVideo - video-specific
+/*
 void MainWindow::openVideo()
 {
     QString path = Settings.openPath();
@@ -2375,7 +2344,9 @@ void MainWindow::openVideo()
         activateWindow();
     }
 }
+*/
 
+/*
 void MainWindow::openCut(Mlt::Producer *producer, bool play)
 {
     m_player->setPauseAfterOpen(!play);
@@ -2383,20 +2354,22 @@ void MainWindow::openCut(Mlt::Producer *producer, bool play)
     if (producer && producer->is_valid() && !MLT.isClosedClip(producer))
         MLT.seek(producer->get_in());
 }
+*/
 
 void MainWindow::hideProducer()
 {
+    // DISABLED: MLT producer hiding
     // This is a hack to release references to the old producer, but it
     // probably leaves a reference to the new color producer somewhere not
     // yet identified (root cause).
-    openCut(new Mlt::Producer(MLT.profile(), "color:_hide"));
-    QCoreApplication::processEvents();
-    openCut(new Mlt::Producer(MLT.profile(), "color:_hide"));
-    QCoreApplication::processEvents();
+    // openCut(new Mlt::Producer(MLT.profile(), "color:_hide"));
+    // QCoreApplication::processEvents();
+    // openCut(new Mlt::Producer(MLT.profile(), "color:_hide"));
+    // QCoreApplication::processEvents();
 
-    QScrollArea *scrollArea = (QScrollArea *) m_propertiesDock->widget();
-    delete scrollArea->widget();
-    scrollArea->setWidget(nullptr);
+    // QScrollArea *scrollArea = (QScrollArea *) m_propertiesDock->widget();
+    // delete scrollArea->widget();
+    // scrollArea->setWidget(nullptr);
     m_player->reset();
 
     QCoreApplication::processEvents();
@@ -2404,31 +2377,35 @@ void MainWindow::hideProducer()
 
 void MainWindow::closeProducer()
 {
-    QCoreApplication::processEvents();
-    hideProducer();
-    m_filterController->motionTrackerModel()->load();
-    MLT.close();
-    MLT.setSavedProducer(nullptr);
+    // DISABLED: MLT producer closing
+    // QCoreApplication::processEvents();
+    // hideProducer();
+    // m_filterController->motionTrackerModel()->load();
+    // MLT.close();
+    // MLT.setSavedProducer(nullptr);
 }
 
 void MainWindow::showStatusMessage(QAction *action, int timeoutSeconds)
 {
+    // DISABLED: MLT player status
     // This object takes ownership of the passed action.
     // This version does not currently log its message.
-    m_statusBarAction.reset(action);
-    action->setParent(nullptr);
-    m_player->setStatusLabel(action->text(), timeoutSeconds, action);
+    // m_statusBarAction.reset(action);
+    // action->setParent(nullptr);
+    // m_player->setStatusLabel(action->text(), timeoutSeconds, action);
+    delete action;
 }
 
 void MainWindow::showStatusMessage(const QString &message,
                                    int timeoutSeconds,
                                    QPalette::ColorRole role)
 {
+    // DISABLED: MLT player status
     LOG_INFO() << message;
-    auto action = new QAction;
-    connect(action, SIGNAL(triggered()), this, SLOT(onStatusMessageClicked()));
-    m_statusBarAction.reset(action);
-    m_player->setStatusLabel(message, timeoutSeconds, action, role);
+    // auto action = new QAction;
+    // connect(action, SIGNAL(triggered()), this, SLOT(onStatusMessageClicked()));
+    // m_statusBarAction.reset(action);
+    // m_player->setStatusLabel(message, timeoutSeconds, action, role);
 }
 
 void MainWindow::onStatusMessageClicked()
@@ -2438,53 +2415,60 @@ void MainWindow::onStatusMessageClicked()
 
 void MainWindow::seekPlaylist(int start)
 {
-    if (!playlist())
-        return;
-    // we bypass this->open() to prevent sending producerOpened signal to self, which causes to reload playlist
-    if (!MLT.producer()
-        || (void *) MLT.producer()->get_producer() != (void *) playlist()->get_playlist())
-        MLT.setProducer(new Mlt::Producer(*playlist()));
-    m_player->setIn(-1);
-    m_player->setOut(-1);
-    // since we do not emit producerOpened, these components need updating
-    on_actionJack_triggered(ui->actionJack && ui->actionJack->isChecked());
-    m_player->onProducerOpened(false);
-    m_encodeDock->onProducerOpened();
-    m_filterController->setProducer();
-    updateMarkers();
-    MLT.seek(start);
-    m_player->setFocus();
-    m_player->switchToTab(Player::ProjectTabIndex);
+    // DISABLED: MLT playlist seeking
+    // if (!playlist())
+    //     return;
+    // // we bypass this->open() to prevent sending producerOpened signal to self, which causes to reload playlist
+    // if (!MLT.producer()
+    //     || (void *) MLT.producer()->get_producer() != (void *) playlist()->get_playlist())
+    //     MLT.setProducer(new Mlt::Producer(*playlist()));
+    // m_player->setIn(-1);
+    // m_player->setOut(-1);
+    // // since we do not emit producerOpened, these components need updating
+    // on_actionJack_triggered(ui->actionJack && ui->actionJack->isChecked());
+    // m_player->onProducerOpened(false);
+    // m_encodeDock->onProducerOpened();
+    // m_filterController->setProducer();
+    // updateMarkers();
+    // MLT.seek(start);
+    // m_player->setFocus();
+    // m_player->switchToTab(Player::ProjectTabIndex);
+    (void)start;
 }
 
 void MainWindow::seekTimeline(int position, bool seekPlayer)
 {
-    if (!multitrack())
-        return;
-    // we bypass this->open() to prevent sending producerOpened signal to self, which causes to reload playlist
-    if (MLT.producer()
-        && (void *) MLT.producer()->get_producer() != (void *) multitrack()->get_producer()) {
-        MLT.setProducer(new Mlt::Producer(*multitrack()));
-        m_player->setIn(-1);
-        m_player->setOut(-1);
-        // since we do not emit producerOpened, these components need updating
-        on_actionJack_triggered(ui->actionJack && ui->actionJack->isChecked());
-        m_player->onProducerOpened(false);
-        m_encodeDock->onProducerOpened();
-        m_filterController->setProducer();
-        updateMarkers();
-        m_player->setFocus();
-        m_player->switchToTab(Player::ProjectTabIndex);
-    }
-    if (seekPlayer)
-        m_player->seek(position);
-    else
-        m_player->pause();
+    // DISABLED: MLT timeline seeking
+    // if (!multitrack())
+    //     return;
+    // // we bypass this->open() to prevent sending producerOpened signal to self, which causes to reload playlist
+    // if (MLT.producer()
+    //     && (void *) MLT.producer()->get_producer() != (void *) multitrack()->get_producer()) {
+    //     MLT.setProducer(new Mlt::Producer(*multitrack()));
+    //     m_player->setIn(-1);
+    //     m_player->setOut(-1);
+    //     // since we do not emit producerOpened, these components need updating
+    //     on_actionJack_triggered(ui->actionJack && ui->actionJack->isChecked());
+    //     m_player->onProducerOpened(false);
+    //     m_encodeDock->onProducerOpened();
+    //     m_filterController->setProducer();
+    //     updateMarkers();
+    //     m_player->setFocus();
+    //     m_player->switchToTab(Player::ProjectTabIndex);
+    // }
+    // if (seekPlayer)
+    //     m_player->seek(position);
+    // else
+    //     m_player->pause();
+    (void)position;
+    (void)seekPlayer;
 }
 
 void MainWindow::seekKeyframes(int position)
 {
-    m_player->seek(position);
+    // DISABLED: MLT keyframe seeking
+    // m_player->seek(position);
+    (void)position;
 }
 
 void MainWindow::readPlayerSettings()
@@ -3292,47 +3276,49 @@ void MainWindow::on_actionOpenOther_triggered()
 
 void MainWindow::onProducerOpened(bool withReopen)
 {
-    QWidget *w = loadProducerWidget(MLT.producer());
-    if (withReopen && w && !MLT.producer()->get(kMultitrackItemProperty)) {
-        if (-1 != w->metaObject()->indexOfSignal("producerReopened(bool)"))
-            connect(w, SIGNAL(producerReopened(bool)), m_player, SLOT(onProducerOpened(bool)));
-    } else if (MLT.isPlaylist()) {
-        m_playlistDock->model()->load();
-        if (playlist()) {
-            m_isPlaylistLoaded = true;
-            m_player->setIn(-1);
-            m_player->setOut(-1);
-            m_playlistDock->setVisible(true);
-            m_playlistDock->raise();
-            m_player->enableTab(Player::ProjectTabIndex);
-            m_player->switchToTab(Player::ProjectTabIndex);
-        }
-    } else if (MLT.isMultitrack()) {
-        m_timelineDock->model()->load();
-        if (isMultitrackValid()) {
-            m_player->setIn(-1);
-            m_player->setOut(-1);
-            m_timelineDock->setVisible(true);
-            m_timelineDock->raise();
-            m_player->enableTab(Player::ProjectTabIndex);
-            m_player->switchToTab(Player::ProjectTabIndex);
-            m_timelineDock->selectMultitrack();
-            m_timelineDock->setSelection();
-        }
-    }
-    if (MLT.isClip()) {
-        m_filterController->setProducer(MLT.producer());
-        m_player->enableTab(Player::SourceTabIndex);
-        m_player->switchToTab(MLT.isClosedClip() ? Player::ProjectTabIndex : Player::SourceTabIndex);
-        Util::getHash(*MLT.producer());
-    }
+    // DISABLED: MLT producer opening
+    // QWidget *w = loadProducerWidget(MLT.producer());
+    // if (withReopen && w && !MLT.producer()->get(kMultitrackItemProperty)) {
+    //     if (-1 != w->metaObject()->indexOfSignal("producerReopened(bool)"))
+    //         connect(w, SIGNAL(producerReopened(bool)), m_player, SLOT(onProducerOpened(bool)));
+    // } else if (MLT.isPlaylist()) {
+    //     m_playlistDock->model()->load();
+    //     if (playlist()) {
+    //         m_isPlaylistLoaded = true;
+    //         m_player->setIn(-1);
+    //         m_player->setOut(-1);
+    //         m_playlistDock->setVisible(true);
+    //         m_playlistDock->raise();
+    //         m_player->enableTab(Player::ProjectTabIndex);
+    //         m_player->switchToTab(Player::ProjectTabIndex);
+    //     }
+    // } else if (MLT.isMultitrack()) {
+    //     m_timelineDock->model()->load();
+    //     if (isMultitrackValid()) {
+    //         m_player->setIn(-1);
+    //         m_player->setOut(-1);
+    //         m_timelineDock->setVisible(true);
+    //         m_timelineDock->raise();
+    //         m_player->enableTab(Player::ProjectTabIndex);
+    //         m_player->switchToTab(Player::ProjectTabIndex);
+    //         m_timelineDock->selectMultitrack();
+    //         m_timelineDock->setSelection();
+    //     }
+    // }
+    // if (MLT.isClip()) {
+    //     m_filterController->setProducer(MLT.producer());
+    //     m_player->enableTab(Player::SourceTabIndex);
+    //     m_player->switchToTab(MLT.isClosedClip() ? Player::ProjectTabIndex : Player::SourceTabIndex);
+    //     Util::getHash(*MLT.producer());
+    // }
     ui->actionSave->setEnabled(true);
-    QMutexLocker locker(&m_autosaveMutex);
-    if (m_autosaveFile)
-        setCurrentFile(m_autosaveFile->managedFileName());
-    else if (!MLT.URL().isEmpty())
-        setCurrentFile(MLT.URL());
-    on_actionJack_triggered(ui->actionJack && ui->actionJack->isChecked());
+    // QMutexLocker locker(&m_autosaveMutex);
+    // if (m_autosaveFile)
+    //     setCurrentFile(m_autosaveFile->managedFileName());
+    // else if (!MLT.URL().isEmpty())
+    //     setCurrentFile(MLT.URL());
+    // on_actionJack_triggered(ui->actionJack && ui->actionJack->isChecked());
+    (void)withReopen;
 }
 
 void MainWindow::onProducerChanged()
@@ -3411,78 +3397,81 @@ void MainWindow::on_actionPauseAfterSeek_triggered(bool checked)
     Settings.setPlayerPauseAfterSeek(checked);
 }
 
+/* DISABLED: MLT crop/marker/selection functions
 void MainWindow::cropSource(const QRectF &rect)
 {
-    filterController()->removeCurrent();
+    // DISABLED: MLT video cropping
+    // filterController()->removeCurrent();
 
-    auto model = filterController()->attachedModel();
-    Mlt::Service service;
-    for (int i = 0; i < model->rowCount(); i++) {
-        service = model->getService(i);
-        if (!qstrcmp("crop", service.get("mlt_service")))
-            break;
-    }
-    if (!service.is_valid()) {
-        auto meta = filterController()->metadata("crop");
-        service = model->getService(model->add(meta));
-        service.set("use_profile", 1);
-    }
-    service.set("left", rect.x());
-    service.set("right", MLT.profile().width() - rect.x() - rect.width());
-    service.set("top", rect.y());
-    service.set("bottom", MLT.profile().height() - rect.y() - rect.height());
+    // auto model = filterController()->attachedModel();
+    // Mlt::Service service;
+    // for (int i = 0; i < model->rowCount(); i++) {
+    //     service = model->getService(i);
+    //     if (!qstrcmp("crop", service.get("mlt_service")))
+    //         break;
+    // }
+    // if (!service.is_valid()) {
+    //     auto meta = filterController()->metadata("crop");
+    //     service = model->getService(model->add(meta));
+    //     service.set("use_profile", 1);
+    // }
+    // service.set("left", rect.x());
+    // service.set("right", MLT.profile().width() - rect.x() - rect.width());
+    // service.set("top", rect.y());
+    // service.set("bottom", MLT.profile().height() - rect.y() - rect.height());
 
-    auto newWidth = Util::coerceMultiple(rect.width());
-    auto newHeight = Util::coerceMultiple(rect.height());
-    QMessageBox dialog(QMessageBox::Question,
-                       qApp->applicationName(),
-                       tr("Do you also want to change the Video Mode to %1 x %2?")
-                           .arg(newWidth)
-                           .arg(newHeight),
-                       QMessageBox::No | QMessageBox::Yes,
-                       this);
-    dialog.setWindowModality(QmlApplication::dialogModality());
-    dialog.setDefaultButton(QMessageBox::Yes);
-    dialog.setEscapeButton(QMessageBox::No);
-    if (QMessageBox::Yes == dialog.exec()) {
-        auto leftRatio = rect.x() / MLT.profile().width();
-        auto rightRatio = 1.0 - (rect.x() + newWidth) / MLT.profile().width();
-        auto topRatio = rect.y() / MLT.profile().height();
-        auto bottomRatio = 1.0 - (rect.y() + newHeight) / MLT.profile().height();
-
-        service.set("left", qRound(leftRatio * newWidth));
-        service.set("right", qRound(rightRatio * newWidth));
-        service.set("top", qRound(topRatio * newHeight));
-        service.set("bottom", qRound(bottomRatio * newHeight));
-
-        MLT.profile().set_width(newWidth);
-        MLT.profile().set_height(newHeight);
-        MLT.profile().set_display_aspect(newWidth * MLT.profile().sar(), newHeight);
-        MLT.updatePreviewProfile();
-        MLT.setPreviewScale(Settings.playerPreviewScale());
-        auto xml = MLT.XML();
-        emit profileChanged();
-        MLT.reload(xml);
-    }
-    emit producerOpened(false);
+    // auto newWidth = Util::coerceMultiple(rect.width());
+    // auto newHeight = Util::coerceMultiple(rect.height());
+    // QMessageBox dialog(QMessageBox::Question,
+    //                    qApp->applicationName(),
+    //                    tr("Do you also want to change the Video Mode to %1 x %2?")
+    //                        .arg(newWidth)
+    //                        .arg(newHeight),
+    //                    QMessageBox::No | QMessageBox::Yes,
+    //                    this);
+    // dialog.setWindowModality(QmlApplication::dialogModality());
+    // dialog.setDefaultButton(QMessageBox::Yes);
+    // dialog.setEscapeButton(QMessageBox::No);
+    // if (QMessageBox::Yes == dialog.exec()) {
+    //     auto leftRatio = rect.x() / MLT.profile().width();
+    //     auto rightRatio = 1.0 - (rect.x() + newWidth) / MLT.profile().width();
+    //     auto topRatio = rect.y() / MLT.profile().height();
+    //     auto bottomRatio = 1.0 - (rect.y() + newHeight) / MLT.profile().height();
+    //
+    //     service.set("left", qRound(leftRatio * newWidth));
+    //     service.set("right", qRound(rightRatio * newWidth));
+    //     service.set("top", qRound(topRatio * newHeight));
+    //     service.set("bottom", qRound(bottomRatio * newHeight));
+    //
+    //     MLT.profile().set_width(newWidth);
+    //     MLT.profile().set_height(newHeight);
+    //     MLT.profile().set_display_aspect(newWidth * MLT.profile().sar(), newHeight);
+    //     MLT.updatePreviewProfile();
+    //     MLT.setPreviewScale(Settings.playerPreviewScale());
+    //     auto xml = MLT.XML();
+    //     emit profileChanged();
+    //     MLT.reload(xml);
+    // }
+    // emit producerOpened(false);
 }
 
 void MainWindow::getMarkerRange(int position, int *start, int *end)
 {
-    if (!MLT.isMultitrack()) {
-        showStatusMessage(tr("Timeline is not loaded"));
-    } else {
-        MarkersModel *model = m_timelineDock->markersModel();
-        int markerIndex = model->rangeMarkerIndexForPosition(position);
-        if (markerIndex >= 0) {
-            Markers::Marker marker = model->getMarker(markerIndex);
-            *start = marker.start;
-            *end = marker.end;
-            return;
-        } else {
-            showStatusMessage(tr("Range marker not found under the timeline cursor"));
-        }
-    }
+    // DISABLED: MLT timeline markers
+    // if (!MLT.isMultitrack()) {
+    //     showStatusMessage(tr("Timeline is not loaded"));
+    // } else {
+    //     MarkersModel *model = m_timelineDock->markersModel();
+    //     int markerIndex = model->rangeMarkerIndexForPosition(position);
+    //     if (markerIndex >= 0) {
+    //         Markers::Marker marker = model->getMarker(markerIndex);
+    //         *start = marker.start;
+    //         *end = marker.end;
+    //         return;
+    //     } else {
+    //         showStatusMessage(tr("Range marker not found under the timeline cursor"));
+    //     }
+    // }
     *start = -1;
     *end = -1;
 }
@@ -3500,12 +3489,15 @@ void MainWindow::getSelectionRange(int *start, int *end)
         *start = -1;
         *end = -1;
     }
-}
-
+    }
+    */
+    
+    /* DISABLED: MLT binPlaylist
 Mlt::Playlist *MainWindow::binPlaylist()
 {
     return m_playlistDock->binPlaylist();
 }
+*/
 
 void MainWindow::showInFiles(const QString &filePath)
 {
@@ -3513,12 +3505,14 @@ void MainWindow::showInFiles(const QString &filePath)
     m_filesDock->changeDirectory(filePath);
 }
 
+/* DISABLED: MLT hardware decoder
 void MainWindow::turnOffHardwareDecoder()
 {
     ui->actionPreviewHardwareDecoder->setChecked(false);
     Settings.setPlayerPreviewHardwareDecoder(false);
     MLT.configureHardwareDecoder(false);
 }
+*/
 
 bool MainWindow::continueModified()
 {
@@ -3692,36 +3686,41 @@ void MainWindow::onFilesDockTriggered(bool checked)
     }
 }
 
+/* DISABLED: MLT player/playlist functions
 void MainWindow::onPlaylistCreated()
 {
+    // DISABLED: MLT playlist
     updateWindowTitle();
-    if (!playlist() || playlist()->count() == 0)
-        return;
-    m_player->enableTab(Player::ProjectTabIndex, true);
+    // if (!playlist() || playlist()->count() == 0)
+    //     return;
+    // m_player->enableTab(Player::ProjectTabIndex, true);
 }
 
 void MainWindow::onPlaylistLoaded()
 {
-    updateMarkers();
-    m_player->enableTab(Player::ProjectTabIndex, true);
+    // DISABLED: MLT playlist loading
+    // updateMarkers();
+    // m_player->enableTab(Player::ProjectTabIndex, true);
 }
 
 void MainWindow::onPlaylistCleared()
 {
-    m_player->onTabBarClicked(Player::SourceTabIndex);
+    // DISABLED: MLT playlist clearing
+    // m_player->onTabBarClicked(Player::SourceTabIndex);
     setWindowModified(true);
 }
+*/
 
 void MainWindow::onPlaylistClosed()
 {
-    setProfile(Settings.playerProfile());
-    resetVideoModeMenu();
-    setAudioChannels(Settings.playerAudioChannels());
+    // setProfile(Settings.playerProfile()); // DISABLED: video
+    // resetVideoModeMenu(); // DISABLED: video
+    // setAudioChannels(Settings.playerAudioChannels()); // DISABLED: video
     setCurrentFile("");
     setWindowModified(false);
-    resetSourceUpdated();
+    // resetSourceUpdated(); // DISABLED: video
     m_undoStack->clear();
-    MLT.resetURL();
+    // MLT.resetURL(); // DISABLED: MLT
     QMutexLocker locker(&m_autosaveMutex);
     m_autosaveFile.reset(new AutoSaveFile(untitledFileName()));
     if (!isMultitrackValid())
@@ -3730,84 +3729,89 @@ void MainWindow::onPlaylistClosed()
 
 void MainWindow::onPlaylistModified()
 {
+    // DISABLED: MLT playlist modification
     setWindowModified(true);
-    if (MLT.producer() && playlist()
-        && (void *) MLT.producer()->get_producer() == (void *) playlist()->get_playlist())
-        m_player->onDurationChanged();
-    updateMarkers();
-    m_player->enableTab(Player::ProjectTabIndex, true);
+    // if (MLT.producer() && playlist()
+    //     && (void *) MLT.producer()->get_producer() == (void *) playlist()->get_playlist())
+    //     m_player->onDurationChanged();
+    // updateMarkers();
+    // m_player->enableTab(Player::ProjectTabIndex, true);
 }
 
 void MainWindow::onMultitrackCreated()
 {
-    m_player->enableTab(Player::ProjectTabIndex, true);
-    QString trackTransitionService = m_timelineDock->model()->trackTransitionService();
-    m_filterController->setTrackTransitionService(trackTransitionService);
+    // DISABLED: MLT multitrack creation
+    // m_player->enableTab(Player::ProjectTabIndex, true);
+    // QString trackTransitionService = m_timelineDock->model()->trackTransitionService();
+    // m_filterController->setTrackTransitionService(trackTransitionService);
 }
 
 void MainWindow::onMultitrackClosed()
 {
-    setAudioChannels(Settings.playerAudioChannels());
-    setProfile(Settings.playerProfile());
-    resetVideoModeMenu();
-    setCurrentFile("");
-    setWindowModified(false);
-    resetSourceUpdated();
-    m_undoStack->clear();
-    MLT.resetURL();
-    QMutexLocker locker(&m_autosaveMutex);
-    m_autosaveFile.reset(new AutoSaveFile(untitledFileName()));
-    if (!playlist() || playlist()->count() == 0)
-        m_player->enableTab(Player::ProjectTabIndex, false);
+    // DISABLED: MLT multitrack closing
+    // setAudioChannels(Settings.playerAudioChannels());
+    // setProfile(Settings.playerProfile());
+    // resetVideoModeMenu();
+    // setCurrentFile("");
+    // setWindowModified(false);
+    // resetSourceUpdated();
+    // m_undoStack->clear();
+    // MLT.resetURL();
+    // QMutexLocker locker(&m_autosaveMutex);
+    // m_autosaveFile.reset(new AutoSaveFile(untitledFileName()));
+    // if (!playlist() || playlist()->count() == 0)
+    //     m_player->enableTab(Player::ProjectTabIndex, false);
 }
 
 void MainWindow::onMultitrackModified()
 {
+    // DISABLED: MLT multitrack modification with timeline dock
     setWindowModified(true);
 
     // Reflect this playlist info onto the producer for keyframes dock.
-    if (!m_timelineDock->selection().isEmpty()) {
-        int trackIndex = m_timelineDock->selection().first().y();
-        int clipIndex = m_timelineDock->selection().first().x();
-        auto info = m_timelineDock->model()->getClipInfo(trackIndex, clipIndex);
-        if (info && info->producer && info->producer->is_valid()) {
-            int expected = info->frame_in;
-            auto info2 = m_timelineDock->model()->getClipInfo(trackIndex, clipIndex - 1);
-            if (info2 && info2->producer && info2->producer->is_valid()
-                && info2->producer->get(kShotcutTransitionProperty)) {
-                // Factor in a transition left of the clip.
-                expected -= info2->frame_count;
-                info->producer->set(kPlaylistStartProperty, info2->start);
-            } else {
-                info->producer->set(kPlaylistStartProperty, info->start);
-            }
-            if (expected != info->producer->get_int(kFilterInProperty)) {
-                int delta = expected - info->producer->get_int(kFilterInProperty);
-                info->producer->set(kFilterInProperty, expected);
-                emit m_filtersDock->producerInChanged(delta);
-            }
-            expected = info->frame_out;
-            info2 = m_timelineDock->model()->getClipInfo(trackIndex, clipIndex + 1);
-            if (info2 && info2->producer && info2->producer->is_valid()
-                && info2->producer->get(kShotcutTransitionProperty)) {
-                // Factor in a transition right of the clip.
-                expected += info2->frame_count;
-            }
-            if (expected != info->producer->get_int(kFilterOutProperty)) {
-                int delta = expected - info->producer->get_int(kFilterOutProperty);
-                info->producer->set(kFilterOutProperty, expected);
-                emit m_filtersDock->producerOutChanged(delta);
-            }
-        }
-    }
-    MLT.refreshConsumer();
+    // if (!m_timelineDock->selection().isEmpty()) {
+    //     int trackIndex = m_timelineDock->selection().first().y();
+    //     int clipIndex = m_timelineDock->selection().first().x();
+    //     auto info = m_timelineDock->model()->getClipInfo(trackIndex, clipIndex);
+    //     if (info && info->producer && info->producer->is_valid()) {
+    //         int expected = info->frame_in;
+    //         auto info2 = m_timelineDock->model()->getClipInfo(trackIndex, clipIndex - 1);
+    //         if (info2 && info2->producer && info2->producer->is_valid()
+    //             && info2->producer->get(kShotcutTransitionProperty)) {
+    //             // Factor in a transition left of the clip.
+    //             expected -= info2->frame_count;
+    //             info->producer->set(kPlaylistStartProperty, info2->start);
+    //         } else {
+    //             info->producer->set(kPlaylistStartProperty, info->start);
+    //         }
+    //         if (expected != info->producer->get_int(kFilterInProperty)) {
+    //             int delta = expected - info->producer->get_int(kFilterInProperty);
+    //             info->producer->set(kFilterInProperty, expected);
+    //             emit m_filtersDock->producerInChanged(delta);
+    //         }
+    //         expected = info->frame_out;
+    //         info2 = m_timelineDock->model()->getClipInfo(trackIndex, clipIndex + 1);
+    //         if (info2 && info2->producer && info2->producer->is_valid()
+    //             && info2->producer->get(kShotcutTransitionProperty)) {
+    //             // Factor in a transition right of the clip.
+    //             expected += info2->frame_count;
+    //         }
+    //         if (expected != info->producer->get_int(kFilterOutProperty)) {
+    //             int delta = expected - info->producer->get_int(kFilterOutProperty);
+    //             info->producer->set(kFilterOutProperty, expected);
+    //             emit m_filtersDock->producerOutChanged(delta);
+    //         }
+    //     }
+    // }
+    // MLT.refreshConsumer();
 }
 
 void MainWindow::onMultitrackDurationChanged()
 {
-    if (MLT.producer()
-        && (void *) MLT.producer()->get_producer() == (void *) multitrack()->get_producer())
-        m_player->onDurationChanged();
+    // DISABLED: MLT multitrack duration change
+    // if (MLT.producer()
+    //     && (void *) MLT.producer()->get_producer() == (void *) multitrack()->get_producer())
+    //     m_player->onDurationChanged();
 }
 
 void MainWindow::onNoteModified()
@@ -4053,6 +4057,8 @@ void MainWindow::changeTheme(const QString &theme)
     LOG_DEBUG() << "end";
 }
 
+// DISABLED: MLT accessors
+/*
 Mlt::Playlist *MainWindow::playlist() const
 {
     return m_playlistDock->model()->playlist();
@@ -4072,7 +4078,9 @@ bool MainWindow::isMultitrackValid() const
 {
     return m_timelineDock->model()->tractor() && !m_timelineDock->model()->trackList().empty();
 }
+*/
 
+/* DISABLED: MLT producer widget loading
 QWidget *MainWindow::loadProducerWidget(Mlt::Producer *producer)
 {
     QWidget *w = 0;
@@ -4211,12 +4219,13 @@ QWidget *MainWindow::loadProducerWidget(Mlt::Producer *producer)
         scrollArea->setWidget(w);
         onProducerChanged();
     } else if (scrollArea->widget()) {
-        scrollArea->widget()->deleteLater();
+         scrollArea->widget()->deleteLater();
+     }
+     return w;
     }
-    return w;
-}
-
-void MainWindow::on_actionEnterFullScreen_triggered()
+    */
+    
+    void MainWindow::on_actionEnterFullScreen_triggered()
 {
     bool isFull = isFullScreen();
     if (isFull) {
@@ -4230,24 +4239,26 @@ void MainWindow::on_actionEnterFullScreen_triggered()
 
 void MainWindow::onGpuNotSupported()
 {
-    if (Settings.processingMode() == ShotcutSettings::Linear10GpuCpu) {
-        Settings.setProcessingMode(ShotcutSettings::Native8Cpu);
-    }
-    ui->actionLinear10bitGpuCpu->setChecked(false);
-    ui->actionLinear10bitGpuCpu->setDisabled(true);
-    LOG_WARNING() << "";
-    QMessageBox::critical(this, qApp->applicationName(), tr("GPU processing is not supported"));
+    // DISABLED: MLT GPU processing
+    // if (Settings.processingMode() == ShotcutSettings::Linear10GpuCpu) {
+    //     Settings.setProcessingMode(ShotcutSettings::Native8Cpu);
+    // }
+    // ui->actionLinear10bitGpuCpu->setChecked(false);
+    // ui->actionLinear10bitGpuCpu->setDisabled(true);
+    LOG_WARNING() << "GPU not supported (disabled for mail client)";
+    // QMessageBox::critical(this, qApp->applicationName(), tr("GPU processing is not supported"));
 }
 
 void MainWindow::onShuttle(float x)
 {
-    if (x == 0) {
-        m_player->pause();
-    } else if (x > 0) {
-        m_player->play(10.0 * x);
-    } else {
-        m_player->play(20.0 * x);
-    }
+    // DISABLED: MLT player shuttle
+    // if (x == 0) {
+    //     m_player->pause();
+    // } else if (x > 0) {
+    //     m_player->play(10.0 * x);
+    // } else {
+    //     m_player->play(20.0 * x);
+    // }
 }
 
 void MainWindow::showUpgradePrompt()
@@ -4479,91 +4490,93 @@ void MainWindow::on_actionJack_triggered(bool checked)
 
 void MainWindow::onExternalTriggered(QAction *action)
 {
+    // DISABLED: MLT external monitor output
     LOG_DEBUG() << action->data().toString();
-    bool isExternal = !action->data().toString().isEmpty();
-    QString profile = Settings.playerProfile();
-    if (Settings.playerGPU() && MLT.producer() && Settings.playerExternal() != action->data()) {
-        if (confirmRestartExternalMonitor()) {
-            Settings.setPlayerExternal(action->data().toString());
-            if (isExternal && profile.isEmpty()) {
-                profile = "atsc_720p_50";
-                Settings.setPlayerProfile(profile);
-            }
-            m_exitCode = EXIT_RESTART;
-            QApplication::closeAllWindows();
-        } else {
-            for (auto a : m_externalGroup->actions()) {
-                if (a->data() == Settings.playerExternal()) {
-                    a->setChecked(true);
-                    if (a->data().toString().startsWith("decklink")) {
-                        if (m_decklinkGammaMenu)
-                            m_decklinkGammaMenu->setEnabled(true);
-                        if (m_keyerMenu)
-                            m_keyerMenu->setEnabled(true);
-                    }
-                    break;
-                }
-            }
-        }
-        return;
-    }
-    Settings.setPlayerExternal(action->data().toString());
-    MLT.stop();
-    bool ok = false;
-    int screen = action->data().toInt(&ok);
-    if (ok || action->data().toString().isEmpty()) {
-        m_player->moveVideoToScreen(ok ? screen : -2);
-        isExternal = false;
-        MLT.videoWidget()->setProperty("mlt_service", QVariant());
-    } else {
-        m_player->moveVideoToScreen(-2);
-        MLT.videoWidget()->setProperty("mlt_service", action->data());
-    }
+    // bool isExternal = !action->data().toString().isEmpty();
+    // QString profile = Settings.playerProfile();
+    // if (Settings.playerGPU() && MLT.producer() && Settings.playerExternal() != action->data()) {
+    //     if (confirmRestartExternalMonitor()) {
+    //         Settings.setPlayerExternal(action->data().toString());
+    //         if (isExternal && profile.isEmpty()) {
+    //             profile = "atsc_720p_50";
+    //             Settings.setPlayerProfile(profile);
+    //         }
+    //         m_exitCode = EXIT_RESTART;
+    //         QApplication::closeAllWindows();
+    //     } else {
+    //         for (auto a : m_externalGroup->actions()) {
+    //             if (a->data() == Settings.playerExternal()) {
+    //                 a->setChecked(true);
+    //                 if (a->data().toString().startsWith("decklink")) {
+    //                     if (m_decklinkGammaMenu)
+    //                         m_decklinkGammaMenu->setEnabled(true);
+    //                     if (m_keyerMenu)
+    //                         m_keyerMenu->setEnabled(true);
+    //                 }
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     return;
+    // }
+    // Settings.setPlayerExternal(action->data().toString());
+    // MLT.stop();
+    // bool ok = false;
+    // int screen = action->data().toInt(&ok);
+    // if (ok || action->data().toString().isEmpty()) {
+    //     m_player->moveVideoToScreen(ok ? screen : -2);
+    //     isExternal = false;
+    //     MLT.videoWidget()->setProperty("mlt_service", QVariant());
+    // } else {
+    //     m_player->moveVideoToScreen(-2);
+    //     MLT.videoWidget()->setProperty("mlt_service", action->data());
+    // }
 
-    // Automatic not permitted for SDI/HDMI
-    if (isExternal && profile.isEmpty()) {
-        auto xml = MLT.XML();
-        profile = "atsc_720p_50";
-        Settings.setPlayerProfile(profile);
-        setProfile(profile);
-        MLT.reload(xml);
-        foreach (QAction *a, m_profileGroup->actions()) {
-            if (a->data() == profile) {
-                a->setChecked(true);
-                break;
-            }
-        }
-    } else {
-        MLT.consumerChanged();
-    }
-    // Automatic not permitted for SDI/HDMI
-    m_profileGroup->actions().at(0)->setEnabled(!isExternal);
+    // // Automatic not permitted for SDI/HDMI
+    // if (isExternal && profile.isEmpty()) {
+    //     auto xml = MLT.XML();
+    //     profile = "atsc_720p_50";
+    //     Settings.setPlayerProfile(profile);
+    //     setProfile(profile);
+    //     MLT.reload(xml);
+    //     foreach (QAction *a, m_profileGroup->actions()) {
+    //         if (a->data() == profile) {
+    //             a->setChecked(true);
+    //             break;
+    //         }
+    //     }
+    // } else {
+    //     MLT.consumerChanged();
+    // }
+    // // Automatic not permitted for SDI/HDMI
+    // m_profileGroup->actions().at(0)->setEnabled(!isExternal);
 
-    // Disable progressive option when SDI/HDMI
-    ui->actionProgressive->setEnabled(!isExternal);
-    bool isProgressive = isExternal ? MLT.profile().progressive()
-                                    : ui->actionProgressive->isChecked();
-    MLT.videoWidget()->setProperty("progressive", isProgressive);
-    if (MLT.consumer()) {
-        MLT.consumer()->set("progressive", isProgressive);
-        MLT.consumerChanged();
-    }
-    if (action->data().toString().startsWith("decklink")) {
-        if (m_decklinkGammaMenu)
-            m_decklinkGammaMenu->setEnabled(true);
-        if (m_keyerMenu)
-            m_keyerMenu->setEnabled(true);
-    }
+    // // Disable progressive option when SDI/HDMI
+    // ui->actionProgressive->setEnabled(!isExternal);
+    // bool isProgressive = isExternal ? MLT.profile().progressive()
+    //                                 : ui->actionProgressive->isChecked();
+    // MLT.videoWidget()->setProperty("progressive", isProgressive);
+    // if (MLT.consumer()) {
+    //     MLT.consumer()->set("progressive", isProgressive);
+    //     MLT.consumerChanged();
+    // }
+    // if (action->data().toString().startsWith("decklink")) {
+    //     if (m_decklinkGammaMenu)
+    //         m_decklinkGammaMenu->setEnabled(true);
+    //     if (m_keyerMenu)
+    //         m_keyerMenu->setEnabled(true);
+    // }
 
-    // Preview scaling not permitted for SDI/HDMI
-    if (isExternal) {
-        ui->actionPreview360->setEnabled(false);
-        ui->actionPreview540->setEnabled(false);
-    } else {
-        ui->actionPreview360->setEnabled(true);
-        ui->actionPreview540->setEnabled(true);
-    }
-    setPreviewScale(Settings.playerPreviewScale());
+    // // Preview scaling not permitted for SDI/HDMI
+    // if (isExternal) {
+    //     ui->actionPreview360->setEnabled(false);
+    //     ui->actionPreview540->setEnabled(false);
+    // } else {
+    //     ui->actionPreview360->setEnabled(true);
+    //     ui->actionPreview540->setEnabled(true);
+    // }
+    // setPreviewScale(Settings.playerPreviewScale());
+    (void)action;
 }
 
 void MainWindow::onDecklinkGammaTriggered(QAction *action)
@@ -5105,7 +5118,8 @@ void MainWindow::onUpgradeTriggered()
 
 void MainWindow::onClipCopied()
 {
-    m_player->enableTab(Player::SourceTabIndex);
+    // DISABLED: MLT player tab enabling
+    // m_player->enableTab(Player::SourceTabIndex);
 }
 
 void MainWindow::on_actionExportEDL_triggered()
@@ -5878,16 +5892,20 @@ void MainWindow::on_actionShowSmallIcons_toggled(bool b)
 
 void MainWindow::onPlaylistInChanged(int in)
 {
-    m_player->blockSignals(true);
-    m_player->setIn(in);
-    m_player->blockSignals(false);
+    // DISABLED: MLT player in point setting
+    // m_player->blockSignals(true);
+    // m_player->setIn(in);
+    // m_player->blockSignals(false);
+    (void)in;
 }
 
 void MainWindow::onPlaylistOutChanged(int out)
 {
-    m_player->blockSignals(true);
-    m_player->setOut(out);
-    m_player->blockSignals(false);
+    // DISABLED: MLT player out point setting
+    // m_player->blockSignals(true);
+    // m_player->setOut(out);
+    // m_player->blockSignals(false);
+    (void)out;
 }
 
 void MainWindow::on_actionPreviewNone_triggered(bool checked)
@@ -5901,20 +5919,24 @@ void MainWindow::on_actionPreviewNone_triggered(bool checked)
 
 void MainWindow::on_actionPreview360_triggered(bool checked)
 {
-    if (checked) {
-        Settings.setPlayerPreviewScale(360);
-        setPreviewScale(360);
-        m_player->showIdleStatus();
-    }
+    // DISABLED: MLT player preview scaling
+    // if (checked) {
+    //     Settings.setPlayerPreviewScale(360);
+    //     setPreviewScale(360);
+    //     m_player->showIdleStatus();
+    // }
+    (void)checked;
 }
 
 void MainWindow::on_actionPreview540_triggered(bool checked)
 {
-    if (checked) {
-        Settings.setPlayerPreviewScale(540);
-        setPreviewScale(540);
-        m_player->showIdleStatus();
-    }
+    // DISABLED: MLT player preview scaling
+    // if (checked) {
+    //     Settings.setPlayerPreviewScale(540);
+    //     setPreviewScale(540);
+    //     m_player->showIdleStatus();
+    // }
+    (void)checked;
 }
 
 void MainWindow::on_actionPreview720_triggered(bool checked)
@@ -6036,84 +6058,86 @@ void MainWindow::on_actionSync_triggered()
 
 void MainWindow::on_actionUseProxy_triggered(bool checked)
 {
-    if (MLT.producer()) {
-        QDir dir(m_currentFile.isEmpty() ? QDir::tempPath() : QFileInfo(m_currentFile).dir());
-        QScopedPointer<QTemporaryFile> tmp(new QTemporaryFile(dir.filePath("shotcut-XXXXXX.mlt")));
-        tmp->open();
-        tmp->close();
-        QString fileName = tmp->fileName();
-        tmp->remove();
-        tmp.reset();
-        LOG_DEBUG() << fileName;
+    // DISABLED: MLT proxy handling
+    // if (MLT.producer()) {
+    //     QDir dir(m_currentFile.isEmpty() ? QDir::tempPath() : QFileInfo(m_currentFile).dir());
+    //     QScopedPointer<QTemporaryFile> tmp(new QTemporaryFile(dir.filePath("shotcut-XXXXXX.mlt")));
+    //     tmp->open();
+    //     tmp->close();
+    //     QString fileName = tmp->fileName();
+    //     tmp->remove();
+    //     tmp.reset();
+    //     LOG_DEBUG() << fileName;
 
-        if (saveXML(fileName)) {
-            MltXmlChecker checker;
+    //     if (saveXML(fileName)) {
+    //         MltXmlChecker checker;
 
-            Settings.setProxyEnabled(checked);
-            checker.check(fileName);
-            if (!isXmlRepaired(checker, fileName)) {
-                QFile::remove(fileName);
-                return;
-            }
-            if (checker.isUpdated()) {
-                QFile::remove(fileName);
-                fileName = checker.tempFile().fileName();
-            }
+    //         Settings.setProxyEnabled(checked);
+    //         checker.check(fileName);
+    //         if (!isXmlRepaired(checker, fileName)) {
+    //             QFile::remove(fileName);
+    //             return;
+    //         }
+    //         if (checker.isUpdated()) {
+    //             QFile::remove(fileName);
+    //             fileName = checker.tempFile().fileName();
+    //         }
 
-            // Open the temporary file
-            int result = 0;
-            {
-                LongUiTask longTask(checked ? tr("Turn Proxy On") : tr("Turn Proxy Off"));
-                QFuture<int> future = QtConcurrent::run([=]() {
-                    return MLT.open(QDir::fromNativeSeparators(fileName),
-                                    QDir::fromNativeSeparators(m_currentFile));
-                });
-                result = longTask.wait<int>(tr("Converting"), future);
-            }
-            if (!result) {
-                auto position = m_player->position();
-                m_undoStack->clear();
-                m_player->stop();
-                m_player->setPauseAfterOpen(true);
-                open(MLT.producer());
-                MLT.seek(m_player->position());
-                m_player->seek(position);
+    //         // Open the temporary file
+    //         int result = 0;
+    //         {
+    //             LongUiTask longTask(checked ? tr("Turn Proxy On") : tr("Turn Proxy Off"));
+    //             QFuture<int> future = QtConcurrent::run([=]() {
+    //                 return MLT.open(QDir::fromNativeSeparators(fileName),
+    //                                 QDir::fromNativeSeparators(m_currentFile));
+    //             });
+    //             result = longTask.wait<int>(tr("Converting"), future);
+    //         }
+    //         if (!result) {
+    //             auto position = m_player->position();
+    //             m_undoStack->clear();
+    //             m_player->stop();
+    //             m_player->setPauseAfterOpen(true);
+    //             open(MLT.producer());
+    //             MLT.seek(m_player->position());
+    //             m_player->seek(position);
 
-                if (checked && (isPlaylistValid() || isMultitrackValid())) {
-                    // Prompt user if they want to create missing proxies
-                    QMessageBox dialog(
-                        QMessageBox::Question,
-                        qApp->applicationName(),
-                        tr("Do you want to create missing proxies for every file in this project?"),
-                        QMessageBox::No | QMessageBox::Yes,
-                        this);
-                    dialog.setWindowModality(QmlApplication::dialogModality());
-                    dialog.setDefaultButton(QMessageBox::Yes);
-                    dialog.setEscapeButton(QMessageBox::No);
-                    if (dialog.exec() == QMessageBox::Yes) {
-                        Mlt::Producer producer(playlist());
-                        if (producer.is_valid()) {
-                            ProxyManager::generateIfNotExistsAll(producer);
-                        }
-                        producer = multitrack();
-                        if (producer.is_valid()) {
-                            ProxyManager::generateIfNotExistsAll(producer);
-                        }
-                    }
-                }
-            } else if (fileName != untitledFileName()) {
-                showStatusMessage(tr("Failed to open ") + fileName);
-                emit openFailed(fileName);
-            }
-        } else {
-            ui->actionUseProxy->setChecked(!checked);
-            showSaveError();
-        }
-        QFile::remove(fileName);
-    } else {
-        Settings.setProxyEnabled(checked);
-    }
-    m_player->showIdleStatus();
+    //             if (checked && (isPlaylistValid() || isMultitrackValid())) {
+    //                 // Prompt user if they want to create missing proxies
+    //                 QMessageBox dialog(
+    //                     QMessageBox::Question,
+    //                     qApp->applicationName(),
+    //                     tr("Do you want to create missing proxies for every file in this project?"),
+    //                     QMessageBox::No | QMessageBox::Yes,
+    //                     this);
+    //                 dialog.setWindowModality(QmlApplication::dialogModality());
+    //                 dialog.setDefaultButton(QMessageBox::Yes);
+    //                 dialog.setEscapeButton(QMessageBox::No);
+    //                 if (dialog.exec() == QMessageBox::Yes) {
+    //                     Mlt::Producer producer(playlist());
+    //                     if (producer.is_valid()) {
+    //                         ProxyManager::generateIfNotExistsAll(producer);
+    //                     }
+    //                     producer = multitrack();
+    //                     if (producer.is_valid()) {
+    //                         ProxyManager::generateIfNotExistsAll(producer);
+    //                     }
+    //                 }
+    //             }
+    //         } else if (fileName != untitledFileName()) {
+    //             showStatusMessage(tr("Failed to open ") + fileName);
+    //             emit openFailed(fileName);
+    //         }
+    //     } else {
+    //         ui->actionUseProxy->setChecked(!checked);
+    //         showSaveError();
+    //     }
+    //     QFile::remove(fileName);
+    // } else {
+    //     Settings.setProxyEnabled(checked);
+    // }
+    // m_player->showIdleStatus();
+    (void)checked;
 }
 
 void MainWindow::on_actionProxyStorageSet_triggered()

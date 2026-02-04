@@ -21,12 +21,10 @@
 #include "mainwindow.h"
 #include "settings.h"
 
-#include <framework/mlt_log.h>
+// #include <framework/mlt_log.h> // MLT disabled
 #include <QCommandLineParser>
 #include <QFile>
 #include <QProcess>
-#include <QQuickStyle>
-#include <QQuickWindow>
 #include <QSysInfo>
 #include <QtGlobal>
 #include <QtWidgets>
@@ -49,6 +47,7 @@ __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
 
 static const int kMaxCacheCount = 5000;
 
+/* MLT log handler disabled - MLT framework removed
 static void mlt_log_handler(void *service, int mlt_level, const char *format, va_list args)
 {
     if (mlt_level > mlt_log_get_level())
@@ -75,32 +74,33 @@ static void mlt_log_handler(void *service, int mlt_level, const char *format, va
         break;
     }
     QString message;
-    mlt_properties properties = service ? MLT_SERVICE_PROPERTIES((mlt_service) service) : NULL;
-    if (properties) {
-        char *mlt_type = mlt_properties_get(properties, "mlt_type");
-        char *service_name = mlt_properties_get(properties, "mlt_service");
-        char *resource = mlt_properties_get(properties, "resource");
-        if (!resource || resource[0] != '<' || resource[strlen(resource) - 1] != '>')
-            mlt_type = mlt_properties_get(properties, "mlt_type");
-        if (service_name)
-            message = QStringLiteral("[%1 %2] ").arg(mlt_type, service_name);
-        else
-            message = QString::asprintf("[%s %p] ", mlt_type, service);
-        if (resource)
-            message.append(QStringLiteral("\"%1\" ").arg(resource));
-        message.append(QString::vasprintf(format, args));
-        message.replace('\n', "");
-    } else {
-        message = QString::vasprintf(format, args);
-        message.replace('\n', "");
+    // mlt_properties properties = service ? MLT_SERVICE_PROPERTIES((mlt_service) service) : NULL;
+    // if (properties) {
+    //     char *mlt_type = mlt_properties_get(properties, "mlt_type");
+    //     char *service_name = mlt_properties_get(properties, "mlt_service");
+    //     char *resource = mlt_properties_get(properties, "resource");
+    //     if (!resource || resource[0] != '<' || resource[strlen(resource) - 1] != '>')
+    //         mlt_type = mlt_properties_get(properties, "mlt_type");
+    //     if (service_name)
+    //         message = QStringLiteral("[%1 %2] ").arg(mlt_type, service_name);
+    //     else
+    //         message = QString::asprintf("[%s %p] ", mlt_type, service);
+    //     if (resource)
+    //         message.append(QStringLiteral("\"%1\" ").arg(resource));
+    //     message.append(QString::vasprintf(format, args));
+    //     message.replace('\n', "");
+    // } else {
+    //     message = QString::vasprintf(format, args);
+    //     message.replace('\n', "");
+    // }
+    // cuteLogger->write(cuteLoggerLevel,
+    //                   __FILE__,
+    //                   __LINE__,
+    //                   "MLT",
+    //                   cuteLogger->defaultCategory().toLatin1().constData(),
+    //                   message);
     }
-    cuteLogger->write(cuteLoggerLevel,
-                      __FILE__,
-                      __LINE__,
-                      "MLT",
-                      cuteLogger->defaultCategory().toLatin1().constData(),
-                      message);
-}
+    */
 
 class Application : public QApplication
 {
@@ -262,11 +262,11 @@ public:
         consoleAppender->setFormat(fileAppender->format());
         cuteLogger->registerAppender(consoleAppender);
 
-        mlt_log_set_level(MLT_LOG_VERBOSE);
-#else
-        mlt_log_set_level(MLT_LOG_INFO);
-#endif
-        mlt_log_set_callback(mlt_log_handler);
+         // mlt_log_set_level(MLT_LOG_VERBOSE);
+        // #else
+         // mlt_log_set_level(MLT_LOG_INFO);
+        // #endif
+        // mlt_log_set_callback(mlt_log_handler); // MLT disabled
         cuteLogger->logToGlobalInstance("qml", true);
 
 #if defined(Q_OS_WIN)

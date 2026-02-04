@@ -17,17 +17,17 @@
 
 #include "util.h"
 
-#include "FlatpakWrapperGenerator.h"
 #include "Logger.h"
-#include "dialogs/transcodedialog.h"
 #include "mainwindow.h"
-#include "proxymanager.h"
-#include "qmltypes/qmlapplication.h"
 #include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "transcoder.h"
-#include <MltChain.h>
-#include <MltProducer.h>
+// #include "FlatpakWrapperGenerator.h" // DISABLED
+// #include "dialogs/transcodedialog.h" // DISABLED
+// #include "proxymanager.h" // DISABLED
+// #include "qmltypes/qmlapplication.h" // DISABLED
+// #include "shotcut_mlt_properties.h" // DISABLED: MLT
+// #include "transcoder.h" // DISABLED: MLT
+// #include <MltChain.h> // DISABLED: MLT
+// #include <MltProducer.h> // DISABLED: MLT
 
 #include <QApplication>
 #include <QCamera>
@@ -153,6 +153,7 @@ bool Util::warnIfNotWritable(const QString &filePath, QWidget *parent, const QSt
     return false;
 }
 
+/* DISABLED: MLT producer title
 QString Util::producerTitle(const Mlt::Producer &producer)
 {
     QString result;
@@ -169,6 +170,7 @@ QString Util::producerTitle(const Mlt::Producer &producer)
         return QString::fromUtf8(p.get(kShotcutCaptionProperty));
     return Util::baseName(ProxyManager::resource(p));
 }
+*/
 
 QString Util::removeFileScheme(QUrl &url, bool fromPercentEncoding)
 {
@@ -363,6 +365,7 @@ QTemporaryFile *Util::writableTemporaryFile(const QString &filePath, const QStri
     }
 }
 
+/* DISABLED: MLT applyCustomProperties
 void Util::applyCustomProperties(Mlt::Producer &destination, Mlt::Producer &source, int in, int out)
 {
     Mlt::Properties p(destination);
@@ -419,6 +422,7 @@ void Util::applyCustomProperties(Mlt::Producer &destination, Mlt::Producer &sour
     }
     destination.set_in_and_out(in, out);
 }
+*/
 
 QString Util::getFileHash(const QString &path)
 {
@@ -441,6 +445,7 @@ QString Util::getFileHash(const QString &path)
     return QString();
 }
 
+/* DISABLED: MLT getHash
 QString Util::getHash(Mlt::Properties &properties)
 {
     QString hash = properties.get(kShotcutHashProperty);
@@ -460,6 +465,7 @@ QString Util::getHash(Mlt::Properties &properties)
     }
     return hash;
 }
+*/
 
 bool Util::hasDriveLetter(const QString &path)
 {
