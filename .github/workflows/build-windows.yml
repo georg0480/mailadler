@@ -1,4 +1,4 @@
-name: build-shotcut-windows
+name: build-mailadler-windows
 
 on:
   workflow_dispatch:
@@ -74,13 +74,13 @@ jobs:
           mkdir Qt
           cd Qt
           echo Downloading Qt
-          curl -kLO --no-progress-meter https://s3.amazonaws.com/misc.meltymedia/shotcut-build/qt-6.10.1-x64-mingw.txz
+          curl -kLO --no-progress-meter https://s3.amazonaws.com/misc.meltymedia/mailadler-build/qt-6.10.1-x64-mingw.txz
           echo Extracting Qt
           tar -xJf qt-6.10.1-x64-mingw.txz
           rm qt-6.10.1-x64-mingw.txz
           cd ..
           echo Downloading a few prebuilt dependencies
-          curl -kLO --no-progress-meter https://s3.amazonaws.com/misc.meltymedia/shotcut-build/mlt-prebuilt-mingw64-v6.txz
+          curl -kLO --no-progress-meter https://s3.amazonaws.com/misc.meltymedia/mailadler-build/mlt-prebuilt-mingw64-v6.txz
           echo Extracting prebuilt dependencies
           tar -xJf mlt-prebuilt-mingw64-v6.txz
           rm mlt-prebuilt-mingw64-v6.txz
@@ -88,9 +88,9 @@ jobs:
           popd
           echo Running the build script
           echo INSTALL_DIR=\"$CHECKOUT_DIR/build\"
-          echo INSTALL_DIR=\"$CHECKOUT_DIR/build\" > build-shotcut.conf
-          echo SHOTCUT_VERSION=\"$VERSION\" >> build-shotcut.conf
-          bash scripts/build-shotcut-msys2.sh
+          echo INSTALL_DIR=\"$CHECKOUT_DIR/build\" > build-mailadler.conf
+          echo mailadler_VERSION=\"$VERSION\" >> build-mailadler.conf
+          bash scripts/build-mailadler-msys2.sh
           pushd build
           echo Installing awscli
           pip install awscli
@@ -98,31 +98,31 @@ jobs:
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_KEY }}
           export AWS_DEFAULT_REGION=us-east-1
           echo Downloading code-signing certificates
-          aws s3 cp s3://misc.meltymedia/shotcut-build/CodeSignCertificates2023.p12 ./ --no-progress
-          aws s3 cp s3://misc.meltymedia/shotcut-build/CodeSignCertificates.pass ./ --no-progress
-          for EXE in Shotcut/*.exe; do
+          aws s3 cp s3://misc.meltymedia/mailadler-build/CodeSignCertificates2023.p12 ./ --no-progress
+          aws s3 cp s3://misc.meltymedia/mailadler-build/CodeSignCertificates.pass ./ --no-progress
+          for EXE in mailadler/*.exe; do
             echo Signing ${EXE}
-            osslsigncode sign -pkcs12 CodeSignCertificates2023.p12 -readpass CodeSignCertificates.pass -n "Shotcut" -i "https://www.meltytech.com" -t "http://timestamp.digicert.com" -in ${EXE} -out ${EXE}-signed
+            osslsigncode sign -pkcs12 CodeSignCertificates2023.p12 -readpass CodeSignCertificates.pass -n "mailadler" -i "https://www.meltytech.com" -t "http://timestamp.digicert.com" -in ${EXE} -out ${EXE}-signed
             mv ${EXE}-signed ${EXE}
           done
           echo Packaging the portable zip
-          zip -gr shotcut-win64-$FILENAME_VERSION.zip Shotcut
+          zip -gr mailadler-win64-$FILENAME_VERSION.zip mailadler
           echo Packaging the installer
           PATH="$HOME/bin:$PATH"
           pushd $HOME/bin
-          curl -kLO --no-progress-meter https://s3.amazonaws.com/misc.meltymedia/shotcut-build/iscc632.txz
+          curl -kLO --no-progress-meter https://s3.amazonaws.com/misc.meltymedia/mailadler-build/iscc632.txz
           tar -xJf iscc632.txz
           popd
           echo Extracting installer dependencies
-          curl -kLO --no-progress-meter https://s3.amazonaws.com/misc.meltymedia/shotcut-build/innosetup-opera-1.txz
+          curl -kLO --no-progress-meter https://s3.amazonaws.com/misc.meltymedia/mailadler-build/innosetup-opera-1.txz
           tar -xJf innosetup-opera-1.txz
           rm innosetup-opera-1.txz
           echo Running Inno Setup Compiler
-          ISCC -Q -O. shotcut.iss
+          ISCC -Q -O. mailadler.iss
           echo Signing the installer
-          osslsigncode sign -pkcs12 CodeSignCertificates2023.p12 -readpass CodeSignCertificates.pass -n "Shotcut Installer" -i "https://www.meltytech.com" -t "http://timestamp.digicert.com" -in shotcut-setup.exe -out shotcut-setup-signed.exe
-          mv shotcut-setup-signed.exe shotcut-win64-$FILENAME_VERSION.exe
-          rm shotcut-setup.exe
+          osslsigncode sign -pkcs12 CodeSignCertificates2023.p12 -readpass CodeSignCertificates.pass -n "mailadler Installer" -i "https://www.meltytech.com" -t "http://timestamp.digicert.com" -in mailadler-setup.exe -out mailadler-setup-signed.exe
+          mv mailadler-setup-signed.exe mailadler-win64-$FILENAME_VERSION.exe
+          rm mailadler-setup.exe
           popd
           echo Done
 
@@ -130,7 +130,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-portable
-          path: ./build/shotcut-win64-*.zip
+          path: ./build/mailadler-win64-*.zip
 
       - name: Upload packages to S3
         shell: msys2 {0}
@@ -140,5 +140,5 @@ jobs:
           export AWS_DEFAULT_REGION=us-east-1
           for file in build/*.{exe,zip}; do
             echo Uploading "$file" to S3
-            aws s3 cp "$file" s3://builds.us.meltytech/shotcut/ --no-progress
+            aws s3 cp "$file" s3://builds.us.meltytech/mailadler/ --no-progress
           done
