@@ -40,3 +40,4 @@ jobs:
             echo "Run 'clang-format-14 -i <files>' locally to fix"
             exit 1
           fi
+# Trigger CI
