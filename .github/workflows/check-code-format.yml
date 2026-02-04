@@ -3,8 +3,9 @@ name: check-code-format
 on:
   workflow_dispatch:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
   push:
+    branches: [main, master]
 
 jobs:
   clang-format:
@@ -19,22 +20,23 @@ jobs:
 
       - name: Check style
         run: |
-          FILES=`find . -type f -name "*.h" -o -name "*.c" -o -name "*.cpp"`
-          FILTERED_FILES=()
-          for file in ${FILES[@]};
-          do
-            [[ $file =~ "./src/" ]] &&
-            [[ ! $file =~ "spatialmedia" ]] &&
-            [[ ! $file =~ "defaultlayouts.h" ]] &&
-            [[ ! $file =~ "_autogen" ]] &&
-            FILTERED_FILES+=($file)
-          done
-          clang-format-14 --verbose --dry-run --Werror -style=file -i ${FILTERED_FILES[@]}
-          if [ $? -eq 0 ]
-          then
-            echo "SUCCESS: All files are formatted correctly"
+          FILES=$(find ./src -type f \( -name "*.h" -o -name "*.c" -o -name "*.cpp" \) \
+            ! -path "*/spatialmedia/*" \
+            ! -name "defaultlayouts.h" \
+            ! -path "*_autogen*")
+          
+          if [ -z "$FILES" ]; then
+            echo "No source files found to check"
             exit 0
+          fi
+          
+          echo "Checking $(echo "$FILES" | wc -l) files..."
+          clang-format-14 --dry-run --Werror -style=file $FILES
+          
+          if [ $? -eq 0 ]; then
+            echo "SUCCESS: All files are formatted correctly"
           else
-          echo "FAILURE: some files are formatted incorrectly"
-            exit 99
+            echo "FAILURE: Some files are formatted incorrectly"
+            echo "Run 'clang-format-14 -i <files>' locally to fix"
+            exit 1
           fi

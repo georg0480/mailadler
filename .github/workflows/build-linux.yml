@@ -2,99 +2,104 @@ name: build-mailadler-linux
 
 on:
   workflow_dispatch:
-  schedule:
-    # nightly
-    - cron: '0 8 * * *'
+  push:
+    branches: [main, master]
+    paths:
+      - 'src/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/build-linux.yml'
+  pull_request:
+    branches: [main, master]
 
 env:
-  IMAGE_NAME: ubuntu:22.04 #mltframework/shotcut-build:qt6.8.3-ubuntu22.04
+  QT_VERSION: 6.6.3
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          modules: 'qtwebsockets'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            libgl1-mesa-dev \
+            libxkbcommon-dev \
+            libxcb-xinerama0-dev \
+            libxcb-cursor0 \
+            libsqlite3-dev \
+            libssl-dev \
+            desktop-file-utils \
+            libfuse2 \
+            imagemagick
+
+      - name: Prepare version
+        run: |
+          VERSION=$(date +"%y.%-m.%-d")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Configure
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr
 
       - name: Build
-        run: |
-          echo Preparing version
-          echo $(date +"%y.%-m.%-d") > VERSION
-          VERSION=$(cat VERSION)
-          echo VERSION=$VERSION
-          FILENAME_VERSION=$VERSION
-          cd scripts
-          echo Making build script config file
-          echo CLEANUP=0 > build-mailadler.conf
-          echo mailadler_VERSION=\"$VERSION\" >> build-mailadler.conf
-          docker run -v $PWD:/root/mailadler $IMAGE_NAME
-          echo Renaming build artifacts
-          mv mailadler.txz mailadler-linux-x86_64-$FILENAME_VERSION.txz
-          mv src.txz mailadler-src-$FILENAME_VERSION.txz
+        run: cmake --build build --parallel
 
-      - name: Upload artifact
+      - name: Package portable
+        run: |
+          cd build
+          DESTDIR=../mailadler-portable cmake --install .
+          cd ..
+          tar -cJf mailadler-linux-x86_64-${{ env.VERSION }}.txz mailadler-portable
+
+      - name: Upload portable artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-portable
-          path: |
-            scripts/mailadler-linux-x86_64-*.txz
-
-      - name: Upload portable and source archives to S3
-        if: ${{ github.repository_owner == 'mltframework' }}
-        uses: mltframework/s3cmd-action@v0
-        with:
-          args: >-
-            --access_key=${{ secrets.AWS_ACCESS_KEY }}
-            --secret_key=${{ secrets.AWS_SECRET_KEY }}
-            --acl-public
-            --stop-on-error
-            put scripts/*.txz s3://builds.us.meltytech/mailadler/
+          path: mailadler-linux-x86_64-*.txz
 
       - name: Package AppImage
         run: |
-          sudo apt update
-          sudo apt install desktop-file-utils libfuse2 imagemagick
-          mkdir packaging/linux/mailadler
-          cp VERSION packaging/linux/mailadler/
+          mkdir -p packaging/linux/mailadler
+          echo "${{ env.VERSION }}" > packaging/linux/mailadler/VERSION
           cd packaging/linux
           export PKG2AICOMMIT=1eceb306077e51b991e987690b364e11971b44b3
-          wget https://raw.githubusercontent.com/probonopd/AppImages/${PKG2AICOMMIT}/pkg2appimage
-          bash -ex pkg2appimage appimage/appimage.yml
-          FILENAME_VERSION=$(cat mailadler/VERSION)
-          mv out/*.AppImage out/mailadler-linux-x86_64-$FILENAME_VERSION.AppImage
+          wget -q https://raw.githubusercontent.com/probonopd/AppImages/${PKG2AICOMMIT}/pkg2appimage || true
+          if [ -f pkg2appimage ] && [ -f appimage/appimage.yml ]; then
+            bash -ex pkg2appimage appimage/appimage.yml
+            mv out/*.AppImage out/mailadler-linux-x86_64-${{ env.VERSION }}.AppImage 2>/dev/null || echo "AppImage packaging skipped"
+          else
+            echo "AppImage packaging not configured yet"
+          fi
 
-      - name: Upload AppImage to S3
-        if: ${{ github.repository_owner == 'mltframework' }}
-        uses: mltframework/s3cmd-action@v0
+      - name: Upload AppImage artifact
+        if: success()
+        uses: actions/upload-artifact@v4
         with:
-          args: >-
-            --access_key=${{ secrets.AWS_ACCESS_KEY }}
-            --secret_key=${{ secrets.AWS_SECRET_KEY }}
-            --acl-public
-            --stop-on-error
-            put packaging/linux/out/*.AppImage s3://builds.us.meltytech/mailadler/
+          name: linux-appimage
+          path: packaging/linux/out/*.AppImage
+          if-no-files-found: ignore
 
-      - name: Prepare snap
-        run: |
-          VERSION=$(cat VERSION)
-          mv scripts/mailadler-linux-x86_64-*.txz packaging/linux
-          cd packaging/linux
-          mkdir -p snap/gui
-          cp ../../icons/mailadler-logo-64.png snap/gui
-          sed 's|Icon=.*|Icon=${SNAP}/meta/gui/mailadler-logo-64.png|' org.mailadler.mailadler.desktop > snap/gui/mailadler.desktop
-          FILENAME=$(ls *.txz)
-          sed "s/\$VERSION/${VERSION}/ ; s/\$FILENAME/${FILENAME}/" snapcraft.yaml.in > snap/snapcraft.yaml
-      - name: Package snap
-        if: ${{ github.repository_owner == 'mltframework' }}
-        uses: snapcore/action-build@v1
-        id: snap
+      - name: Upload to release (on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
         with:
-          path: packaging/linux
-      - name: Publish snap
-        if: ${{ github.repository_owner == 'mltframework' }}
-        uses: snapcore/action-publish@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
-        with:
-          snap: ${{ steps.snap.outputs.snap }}
-          release: edge
+          files: |
+            mailadler-linux-x86_64-*.txz
+            packaging/linux/out/*.AppImage
