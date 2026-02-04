@@ -49,7 +49,7 @@ jobs:
 
       - name: Prepare version
         run: |
-          VERSION=$(date +"%y.%-m.%-d")
+          VERSION=$(date +"%y.%-m.%-d-%H%M")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Configure

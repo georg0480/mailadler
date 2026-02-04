@@ -42,7 +42,7 @@ jobs:
       - name: Prepare version
         shell: bash
         run: |
-          VERSION=$(date +"%y.%-m.%-d")
+          VERSION=$(date +"%y.%-m.%-d-%H%M")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Package

@@ -16,34 +16,31 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04-arm
+    runs-on: [self-hosted, linux, ARM64]
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: ${{ env.QT_VERSION }}
-          arch: linux_gcc_arm64
-          modules: 'qtwebsockets'
-          cache: true
-
-      - name: Install dependencies
+      - name: Install dependencies (first run only)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            cmake \
-            ninja-build \
-            libgl1-mesa-dev \
-            libxkbcommon-dev \
-            libxcb-xinerama0-dev \
-            libxcb-cursor0 \
-            libsqlite3-dev \
-            libssl-dev
+          # Nur installieren wenn noch nicht vorhanden
+          if ! command -v cmake &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y \
+              build-essential \
+              cmake \
+              ninja-build \
+              qt6-base-dev \
+              qt6-websockets-dev \
+              libgl1-mesa-dev \
+              libxkbcommon-dev \
+              libxcb-xinerama0-dev \
+              libxcb-cursor0 \
+              libsqlite3-dev \
+              libssl-dev
+          fi
 
       - name: Configure
         run: |
@@ -57,7 +54,7 @@ jobs:
 
       - name: Prepare version
         run: |
-          VERSION=$(date +"%y.%-m.%-d")
+          VERSION=$(date +"%y.%-m.%-d-%H%M")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Package
