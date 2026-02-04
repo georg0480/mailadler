@@ -1810,8 +1810,12 @@ bool MainWindow::saveRepairedXmlFile_disabled(MltXmlChecker &checker, QString &f
 }
 */
 
-bool MainWindow::isXmlRepaired(MltXmlChecker &checker, QString &fileName) 
-{ return true; } // DISABLED: MLT XML checker
+bool MainWindow::isXmlRepaired(MltXmlChecker &checker, QString &fileName)
+{
+    Q_UNUSED(checker)
+    Q_UNUSED(fileName)
+    return true; // DISABLED: MLT XML checker
+}
 
 /*
 bool MainWindow::isXmlRepaired_disabled(MltXmlChecker &checker, QString &fileName)
@@ -2301,7 +2305,13 @@ void MainWindow::openMultiple(const QStringList &paths)
 */
 
 bool MainWindow::open(QString url, const Mlt::Properties *properties, bool play, bool skipConvert)
-{ return false; } // DISABLED: MLT
+{
+    Q_UNUSED(url)
+    Q_UNUSED(properties)
+    Q_UNUSED(play)
+    Q_UNUSED(skipConvert)
+    return false; // DISABLED: MLT
+}
 
 // This one is invoked from above (command line) or drag-n-drop.
 void MainWindow::openMultiple(const QList<QUrl> &urls)
@@ -2433,7 +2443,7 @@ void MainWindow::seekPlaylist(int start)
     // MLT.seek(start);
     // m_player->setFocus();
     // m_player->switchToTab(Player::ProjectTabIndex);
-    (void)start;
+    Q_UNUSED(start)
 }
 
 void MainWindow::seekTimeline(int position, bool seekPlayer)
@@ -2460,15 +2470,15 @@ void MainWindow::seekTimeline(int position, bool seekPlayer)
     //     m_player->seek(position);
     // else
     //     m_player->pause();
-    (void)position;
-    (void)seekPlayer;
+    Q_UNUSED(position)
+    Q_UNUSED(seekPlayer)
 }
 
 void MainWindow::seekKeyframes(int position)
 {
     // DISABLED: MLT keyframe seeking
     // m_player->seek(position);
-    (void)position;
+    Q_UNUSED(position)
 }
 
 void MainWindow::readPlayerSettings()
@@ -3318,7 +3328,7 @@ void MainWindow::onProducerOpened(bool withReopen)
     // else if (!MLT.URL().isEmpty())
     //     setCurrentFile(MLT.URL());
     // on_actionJack_triggered(ui->actionJack && ui->actionJack->isChecked());
-    (void)withReopen;
+    Q_UNUSED(withReopen)
 }
 
 void MainWindow::onProducerChanged()
@@ -3489,8 +3499,8 @@ void MainWindow::getSelectionRange(int *start, int *end)
         *start = -1;
         *end = -1;
     }
-    }
-    */
+}
+*/
     
     /* DISABLED: MLT binPlaylist
 Mlt::Playlist *MainWindow::binPlaylist()
@@ -4219,11 +4229,11 @@ QWidget *MainWindow::loadProducerWidget(Mlt::Producer *producer)
         scrollArea->setWidget(w);
         onProducerChanged();
     } else if (scrollArea->widget()) {
-         scrollArea->widget()->deleteLater();
-     }
-     return w;
+        scrollArea->widget()->deleteLater();
     }
-    */
+    return w;
+}
+*/
     
     void MainWindow::on_actionEnterFullScreen_triggered()
 {
@@ -4576,7 +4586,7 @@ void MainWindow::onExternalTriggered(QAction *action)
     //     ui->actionPreview540->setEnabled(true);
     // }
     // setPreviewScale(Settings.playerPreviewScale());
-    (void)action;
+    Q_UNUSED(action)
 }
 
 void MainWindow::onDecklinkGammaTriggered(QAction *action)
@@ -5896,7 +5906,7 @@ void MainWindow::onPlaylistInChanged(int in)
     // m_player->blockSignals(true);
     // m_player->setIn(in);
     // m_player->blockSignals(false);
-    (void)in;
+    Q_UNUSED(in)
 }
 
 void MainWindow::onPlaylistOutChanged(int out)
@@ -5905,7 +5915,7 @@ void MainWindow::onPlaylistOutChanged(int out)
     // m_player->blockSignals(true);
     // m_player->setOut(out);
     // m_player->blockSignals(false);
-    (void)out;
+    Q_UNUSED(out)
 }
 
 void MainWindow::on_actionPreviewNone_triggered(bool checked)
@@ -5925,7 +5935,7 @@ void MainWindow::on_actionPreview360_triggered(bool checked)
     //     setPreviewScale(360);
     //     m_player->showIdleStatus();
     // }
-    (void)checked;
+    Q_UNUSED(checked)
 }
 
 void MainWindow::on_actionPreview540_triggered(bool checked)
@@ -5936,7 +5946,7 @@ void MainWindow::on_actionPreview540_triggered(bool checked)
     //     setPreviewScale(540);
     //     m_player->showIdleStatus();
     // }
-    (void)checked;
+    Q_UNUSED(checked)
 }
 
 void MainWindow::on_actionPreview720_triggered(bool checked)
@@ -6137,7 +6147,7 @@ void MainWindow::on_actionUseProxy_triggered(bool checked)
     //     Settings.setProxyEnabled(checked);
     // }
     // m_player->showIdleStatus();
-    (void)checked;
+    Q_UNUSED(checked)
 }
 
 void MainWindow::on_actionProxyStorageSet_triggered()

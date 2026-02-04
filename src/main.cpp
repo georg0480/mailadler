@@ -261,12 +261,9 @@ public:
         ConsoleAppender *consoleAppender = new ConsoleAppender();
         consoleAppender->setFormat(fileAppender->format());
         cuteLogger->registerAppender(consoleAppender);
-
-         // mlt_log_set_level(MLT_LOG_VERBOSE);
-        // #else
-         // mlt_log_set_level(MLT_LOG_INFO);
-        // #endif
-        // mlt_log_set_callback(mlt_log_handler); // MLT disabled
+        // MLT logging disabled
+        // mlt_log_set_level(MLT_LOG_VERBOSE);
+        // mlt_log_set_callback(mlt_log_handler);
         cuteLogger->logToGlobalInstance("qml", true);
 
 #if defined(Q_OS_WIN)
