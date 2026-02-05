@@ -2,14 +2,15 @@ name: build-mailadler-linux-arm64
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main, master]
-    paths:
-      - 'src/**'
-      - 'CMakeLists.txt'
-      - '.github/workflows/build-linux_arm64.yml'
-  pull_request:
-    branches: [main, master]
+  # DEAKTIVIERT bis Windows-Version läuft
+  # push:
+  #   branches: [main, master]
+  #   paths:
+  #     - 'src/**'
+  #     - 'CMakeLists.txt'
+  #     - '.github/workflows/build-linux_arm64.yml'
+  # pull_request:
+  #   branches: [main, master]
 
 env:
   QT_VERSION: 6.6.3
