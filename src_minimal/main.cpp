@@ -10,12 +10,20 @@
 #include <QToolBar>
 #include <QDockWidget>
 #include <QTreeWidget>
-#include <QListWidget>
+#include <QTableWidget>
 #include <QTextEdit>
 #include <QSplitter>
 #include <QStatusBar>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QHeaderView>
+#include <QMessageBox>
+#include <QSettings>
+
+#include <QInputDialog>
+
+#include "imapconnection.h"
+#include "accountsettings.h"
 
 class MailAdlerWindow : public QMainWindow
 {
@@ -27,36 +35,172 @@ public:
         setWindowTitle(tr("mailadler - E-Mail Client"));
         resize(1200, 800);
 
+        m_imap = new ImapConnection(this);
+        connectImapSignals();
+
         setupMenus();
         setupToolbar();
         setupDocks();
         setupCentralWidget();
         setupStatusBar();
+
+        // Automatisch verbinden wenn Einstellungen vorhanden
+        QSettings settings;
+        if (!settings.value("Account/email").toString().isEmpty()) {
+            QTimer::singleShot(500, this, &MailAdlerWindow::onFetchMails);
+        }
+    }
+
+private slots:
+    void onNewMail()
+    {
+        QMessageBox::information(this, tr("Neue Nachricht"), 
+            tr("Compose-Dialog wird in Phase C implementiert."));
+    }
+
+    void onFetchMails()
+    {
+        QSettings settings;
+        QString email = settings.value("Account/email").toString();
+        QString server = settings.value("Account/imapServer", "imap.gmx.net").toString();
+        int port = settings.value("Account/imapPort", 993).toInt();
+        
+        // Gespeichertes Passwort laden
+        QByteArray encoded = settings.value("Account/password").toByteArray();
+        QString password = QString::fromUtf8(QByteArray::fromBase64(encoded));
+
+        if (email.isEmpty() || password.isEmpty()) {
+            onAccountSettings();
+            return;
+        }
+
+        m_imap->connectToServer(server, port);
+        m_pendingPassword = password;
+    }
+
+    void onAccountSettings()
+    {
+        AccountSettingsDialog dialog(this);
+        if (dialog.exec() == QDialog::Accepted) {
+            statusBar()->showMessage(tr("Konto gespeichert: %1").arg(dialog.email()));
+        }
+    }
+
+    void onImapConnected()
+    {
+        QSettings settings;
+        QString email = settings.value("Account/email").toString();
+        m_imap->login(email, m_pendingPassword);
+        m_pendingPassword.clear();
+    }
+
+    void onImapAuthenticated()
+    {
+        m_imap->selectFolder("INBOX");
+    }
+
+    void onFolderSelected(const QString &folder, int count)
+    {
+        Q_UNUSED(folder)
+        Q_UNUSED(count)
+        m_imap->fetchHeaders(50);
+    }
+
+    void onHeadersReceived(const QList<EmailHeader> &headers)
+    {
+        m_mailTable->setRowCount(0);
+        
+        for (const auto &h : headers) {
+            int row = m_mailTable->rowCount();
+            m_mailTable->insertRow(row);
+            
+            // Ungelesen-Markierung
+            QString prefix = h.seen ? "" : "📧 ";
+            
+            auto *fromItem = new QTableWidgetItem(prefix + h.from);
+            if (!h.seen) {
+                QFont font = fromItem->font();
+                font.setBold(true);
+                fromItem->setFont(font);
+            }
+            m_mailTable->setItem(row, 0, fromItem);
+            
+            auto *subjectItem = new QTableWidgetItem(h.subject);
+            if (!h.seen) {
+                QFont font = subjectItem->font();
+                font.setBold(true);
+                subjectItem->setFont(font);
+            }
+            m_mailTable->setItem(row, 1, subjectItem);
+            
+            m_mailTable->setItem(row, 2, new QTableWidgetItem(h.date));
+            
+            // UID speichern
+            m_mailTable->item(row, 0)->setData(Qt::UserRole, h.uid);
+        }
+        
+        statusBar()->showMessage(tr("%1 Nachrichten").arg(headers.size()));
+    }
+
+    void onImapError(const QString &msg)
+    {
+        QMessageBox::warning(this, tr("Verbindungsfehler"), msg);
+    }
+
+    void onImapStatus(const QString &msg)
+    {
+        statusBar()->showMessage(msg);
+    }
+
+    void onMailSelected(int row, int column)
+    {
+        Q_UNUSED(column)
+        if (row < 0) return;
+        
+        QString from = m_mailTable->item(row, 0)->text();
+        QString subject = m_mailTable->item(row, 1)->text();
+        QString date = m_mailTable->item(row, 2)->text();
+        
+        m_preview->setHtml(QString(
+            "<h2>%1</h2>"
+            "<p><b>Von:</b> %2<br>"
+            "<b>Datum:</b> %3</p>"
+            "<hr>"
+            "<p><i>Nachrichteninhalt wird in Phase C geladen...</i></p>"
+        ).arg(subject.toHtmlEscaped(), from.toHtmlEscaped(), date.toHtmlEscaped()));
     }
 
 private:
+    void connectImapSignals()
+    {
+        connect(m_imap, &ImapConnection::connected, 
+                this, &MailAdlerWindow::onImapConnected);
+        connect(m_imap, &ImapConnection::authenticated, 
+                this, &MailAdlerWindow::onImapAuthenticated);
+        connect(m_imap, &ImapConnection::folderSelected, 
+                this, &MailAdlerWindow::onFolderSelected);
+        connect(m_imap, &ImapConnection::headersReceived, 
+                this, &MailAdlerWindow::onHeadersReceived);
+        connect(m_imap, &ImapConnection::error, 
+                this, &MailAdlerWindow::onImapError);
+        connect(m_imap, &ImapConnection::statusMessage, 
+                this, &MailAdlerWindow::onImapStatus);
+    }
+
     void setupMenus()
     {
         // Datei-Menü
         QMenu *fileMenu = menuBar()->addMenu(tr("&Datei"));
-        fileMenu->addAction(tr("Neue Nachricht"), this, []() {}, QKeySequence::New);
-        fileMenu->addAction(tr("E-Mails abrufen"), this, []() {}, QKeySequence(Qt::Key_F5));
+        fileMenu->addAction(tr("Neue Nachricht"), QKeySequence::New, this, &MailAdlerWindow::onNewMail);
+        fileMenu->addAction(tr("E-Mails abrufen"), QKeySequence(Qt::Key_F5), this, &MailAdlerWindow::onFetchMails);
         fileMenu->addSeparator();
-        fileMenu->addAction(tr("Drucken..."), this, []() {}, QKeySequence::Print);
-        fileMenu->addAction(tr("Als PDF speichern..."), this, []() {});
+        fileMenu->addAction(tr("Konto einrichten..."), this, &MailAdlerWindow::onAccountSettings);
         fileMenu->addSeparator();
-        fileMenu->addAction(tr("Beenden"), this, &QMainWindow::close, QKeySequence::Quit);
+        fileMenu->addAction(tr("Beenden"), QKeySequence::Quit, this, &QMainWindow::close);
 
         // Bearbeiten-Menü
         QMenu *editMenu = menuBar()->addMenu(tr("&Bearbeiten"));
-        editMenu->addAction(tr("Rückgängig"), this, []() {}, QKeySequence::Undo);
-        editMenu->addAction(tr("Wiederherstellen"), this, []() {}, QKeySequence::Redo);
-        editMenu->addSeparator();
-        editMenu->addAction(tr("Ausschneiden"), this, []() {}, QKeySequence::Cut);
-        editMenu->addAction(tr("Kopieren"), this, []() {}, QKeySequence::Copy);
-        editMenu->addAction(tr("Einfügen"), this, []() {}, QKeySequence::Paste);
-        editMenu->addSeparator();
-        editMenu->addAction(tr("Suchen..."), this, []() {}, QKeySequence::Find);
+        editMenu->addAction(tr("Suchen..."), QKeySequence::Find, this, []() {});
 
         // Ansicht-Menü
         QMenu *viewMenu = menuBar()->addMenu(tr("&Ansicht"));
@@ -65,25 +209,33 @@ private:
 
         // Nachricht-Menü
         QMenu *msgMenu = menuBar()->addMenu(tr("&Nachricht"));
-        msgMenu->addAction(tr("Antworten"), this, []() {}, QKeySequence(Qt::CTRL | Qt::Key_R));
-        msgMenu->addAction(tr("Allen antworten"), this, []() {}, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_R));
-        msgMenu->addAction(tr("Weiterleiten"), this, []() {}, QKeySequence(Qt::CTRL | Qt::Key_F));
+        msgMenu->addAction(tr("Antworten"), QKeySequence(Qt::CTRL | Qt::Key_R), this, []() {});
+        msgMenu->addAction(tr("Weiterleiten"), QKeySequence(Qt::CTRL | Qt::Key_F), this, []() {});
         msgMenu->addSeparator();
-        msgMenu->addAction(tr("Als gelesen markieren"));
-        msgMenu->addAction(tr("Als ungelesen markieren"));
-        msgMenu->addSeparator();
-        msgMenu->addAction(tr("Löschen"), this, []() {}, QKeySequence::Delete);
+        msgMenu->addAction(tr("Löschen"), QKeySequence::Delete, this, []() {});
 
         // Hilfe-Menü
         QMenu *helpMenu = menuBar()->addMenu(tr("&Hilfe"));
-        helpMenu->addAction(tr("Über mailadler..."), this, []() {});
+        helpMenu->addAction(tr("Über mailadler..."), this, [this]() {
+            QMessageBox::about(this, tr("Über mailadler"),
+                tr("<h2>mailadler 0.1.0</h2>"
+                   "<p>E-Mail Client für Windows, Linux und macOS</p>"
+                   "<p>Copyright © 2026 Georg Dahmen</p>"
+                   "<p>Lizenz: GPLv3</p>"));
+        });
     }
 
     void setupToolbar()
     {
         QToolBar *toolbar = addToolBar(tr("Hauptleiste"));
-        toolbar->addAction(tr("Abrufen"));
-        toolbar->addAction(tr("Neue Nachricht"));
+        toolbar->setIconSize(QSize(24, 24));
+        
+        auto *fetchAction = toolbar->addAction(tr("Abrufen"));
+        connect(fetchAction, &QAction::triggered, this, &MailAdlerWindow::onFetchMails);
+        
+        auto *newAction = toolbar->addAction(tr("Neue Nachricht"));
+        connect(newAction, &QAction::triggered, this, &MailAdlerWindow::onNewMail);
+        
         toolbar->addSeparator();
         toolbar->addAction(tr("Antworten"));
         toolbar->addAction(tr("Weiterleiten"));
@@ -118,27 +270,32 @@ private:
     {
         QSplitter *splitter = new QSplitter(Qt::Vertical, this);
 
-        // Mail-Liste (oben)
-        QListWidget *mailList = new QListWidget();
-        mailList->addItem(tr("📧 Max Mustermann - Wichtige Nachricht"));
-        mailList->addItem(tr("📧 Anna Schmidt - Meeting morgen"));
-        mailList->addItem(tr("📧 Support - Ihre Anfrage #12345"));
-        splitter->addWidget(mailList);
+        // Mail-Tabelle (oben)
+        m_mailTable = new QTableWidget();
+        m_mailTable->setColumnCount(3);
+        m_mailTable->setHorizontalHeaderLabels({tr("Von"), tr("Betreff"), tr("Datum")});
+        m_mailTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        m_mailTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        m_mailTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+        m_mailTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+        m_mailTable->setSelectionMode(QAbstractItemView::SingleSelection);
+        m_mailTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        m_mailTable->verticalHeader()->hide();
+        
+        connect(m_mailTable, &QTableWidget::cellClicked, 
+                this, &MailAdlerWindow::onMailSelected);
+        
+        splitter->addWidget(m_mailTable);
 
         // Mail-Vorschau (unten)
-        QTextEdit *preview = new QTextEdit();
-        preview->setReadOnly(true);
-        preview->setHtml(
-            "<h2>Wichtige Nachricht</h2>"
-            "<p><b>Von:</b> Max Mustermann &lt;max@example.com&gt;<br>"
-            "<b>An:</b> Sie<br>"
-            "<b>Datum:</b> 04.02.2026 18:30</p>"
-            "<hr>"
-            "<p>Hallo,</p>"
-            "<p>Dies ist eine Test-Nachricht in mailadler.</p>"
-            "<p>Mit freundlichen Grüßen,<br>Max</p>"
+        m_preview = new QTextEdit();
+        m_preview->setReadOnly(true);
+        m_preview->setHtml(
+            "<h2>Willkommen bei mailadler</h2>"
+            "<p>Drücke <b>F5</b> oder klicke <b>Abrufen</b> um E-Mails zu laden.</p>"
+            "<p>Richte zuerst dein Konto ein unter <b>Datei → Konto einrichten</b>.</p>"
         );
-        splitter->addWidget(preview);
+        splitter->addWidget(m_preview);
 
         splitter->setSizes(QList<int>() << 300 << 500);
         setCentralWidget(splitter);
@@ -146,8 +303,13 @@ private:
 
     void setupStatusBar()
     {
-        statusBar()->showMessage(tr("Bereit - 3 Nachrichten"));
+        statusBar()->showMessage(tr("Bereit"));
     }
+
+    ImapConnection *m_imap;
+    QTableWidget *m_mailTable;
+    QTextEdit *m_preview;
+    QString m_pendingPassword;
 };
 
 int main(int argc, char *argv[])
@@ -155,6 +317,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationName("mailadler");
     app.setOrganizationName("Georg Dahmen");
+    app.setOrganizationDomain("mailadler.de");
     app.setApplicationVersion("0.1.0");
 
     MailAdlerWindow window;

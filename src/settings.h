@@ -18,7 +18,6 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <framework/mlt_types.h>
 #include <QByteArray>
 #include <QKeySequence>
 #include <QObject>
@@ -311,7 +310,7 @@ public:
     bool warnLowMemory() const;
     int backupPeriod() const;
     void setBackupPeriod(int i);
-    mlt_time_format timeFormat() const;
+    int timeFormat() const;
     void setTimeFormat(int format);
     bool askFlatpakWrappers();
     void setAskFlatpakWrappers(bool b);

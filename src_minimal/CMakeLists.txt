@@ -22,6 +22,10 @@ find_package(Qt6 REQUIRED COMPONENTS
 
 add_executable(mailadler WIN32
     main.cpp
+    imapconnection.cpp
+    imapconnection.h
+    accountsettings.cpp
+    accountsettings.h
 )
 
 target_link_libraries(mailadler PRIVATE
