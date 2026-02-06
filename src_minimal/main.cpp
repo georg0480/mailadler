@@ -96,7 +96,9 @@ private slots:
 
     void onImapAuthenticated()
     {
-        m_imap->selectFolder("INBOX");
+        QString folder = m_pendingFolder.isEmpty() ? "INBOX" : m_pendingFolder;
+        m_pendingFolder.clear();
+        m_imap->selectFolder(folder);
     }
 
     void onFolderSelected(const QString &folder, int count)
@@ -247,23 +249,48 @@ private:
     {
         // Ordner-Dock (links)
         QDockWidget *folderDock = new QDockWidget(tr("Ordner"), this);
-        QTreeWidget *folderTree = new QTreeWidget();
-        folderTree->setHeaderHidden(true);
+        m_folderTree = new QTreeWidget();
+        m_folderTree->setHeaderHidden(true);
         
-        QTreeWidgetItem *inbox = new QTreeWidgetItem(folderTree, QStringList() << tr("Posteingang"));
+        // IMAP-Ordnernamen als Data speichern
+        QTreeWidgetItem *inbox = new QTreeWidgetItem(m_folderTree, QStringList() << tr("Posteingang"));
         inbox->setIcon(0, style()->standardIcon(QStyle::SP_DirIcon));
+        inbox->setData(0, Qt::UserRole, "INBOX");
         
-        QTreeWidgetItem *sent = new QTreeWidgetItem(folderTree, QStringList() << tr("Gesendet"));
+        QTreeWidgetItem *sent = new QTreeWidgetItem(m_folderTree, QStringList() << tr("Gesendet"));
         sent->setIcon(0, style()->standardIcon(QStyle::SP_DirIcon));
+        sent->setData(0, Qt::UserRole, "Sent");  // GMX: "Gesendet" oder "Sent"
         
-        QTreeWidgetItem *drafts = new QTreeWidgetItem(folderTree, QStringList() << tr("Entwürfe"));
+        QTreeWidgetItem *drafts = new QTreeWidgetItem(m_folderTree, QStringList() << tr("Entwürfe"));
         drafts->setIcon(0, style()->standardIcon(QStyle::SP_DirIcon));
+        drafts->setData(0, Qt::UserRole, "Drafts");
         
-        QTreeWidgetItem *trash = new QTreeWidgetItem(folderTree, QStringList() << tr("Papierkorb"));
+        QTreeWidgetItem *spam = new QTreeWidgetItem(m_folderTree, QStringList() << tr("Spam"));
+        spam->setIcon(0, style()->standardIcon(QStyle::SP_DialogNoButton));
+        spam->setData(0, Qt::UserRole, "Spam");
+        
+        QTreeWidgetItem *trash = new QTreeWidgetItem(m_folderTree, QStringList() << tr("Papierkorb"));
         trash->setIcon(0, style()->standardIcon(QStyle::SP_TrashIcon));
+        trash->setData(0, Qt::UserRole, "Trash");
         
-        folderDock->setWidget(folderTree);
+        connect(m_folderTree, &QTreeWidget::itemClicked, this, &MailAdlerWindow::onFolderClicked);
+        
+        folderDock->setWidget(m_folderTree);
         addDockWidget(Qt::LeftDockWidgetArea, folderDock);
+    }
+    
+    void onFolderClicked(QTreeWidgetItem *item, int column)
+    {
+        Q_UNUSED(column)
+        QString folder = item->data(0, Qt::UserRole).toString();
+        if (folder.isEmpty()) return;
+        
+        if (!m_imap->isAuthenticated()) {
+            onFetchMails();  // Erst verbinden
+            m_pendingFolder = folder;
+        } else {
+            m_imap->selectFolder(folder);
+        }
     }
 
     void setupCentralWidget()
@@ -309,7 +336,9 @@ private:
     ImapConnection *m_imap;
     QTableWidget *m_mailTable;
     QTextEdit *m_preview;
+    QTreeWidget *m_folderTree;
     QString m_pendingPassword;
+    QString m_pendingFolder;
 };
 
 int main(int argc, char *argv[])
